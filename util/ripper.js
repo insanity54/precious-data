@@ -19,9 +19,11 @@ const path = require('path');
 const debug = require('debug')('precious-data');
 
 // constants
+const version = require(path.join(__dirname, '..', 'package.json')).version;
+const customHeaders = {'User-Agent': `precious-data/${version}`};
 const rootUrl = 'http://p-memories.com';
 const cardPageRegex = /p-memories.com\/node\/\d+/;
-const setNameRegex = /product\/(.+)\//;
+const setAbbrRegex = /product\/(.+)\//;
 const imageNameRegex = /\/product\/.+\/(.+_.+-.+.jpg)/;
 const releaseNameRegex = /\/product\/.+\/.+_(.+)-.+.jpg/;
 
@@ -33,8 +35,9 @@ const releaseNameRegex = /\/product\/.+\/.+_(.+)-.+.jpg/;
  * The perfect path includes set abbreviation (ex: HMK,)
  * release number (ex: 01) and image name. (ex: HMK_01-001.json.)
  *
- * Example input: http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg
- * Example output: @/data/SSSS/01/SSSS_01-001.jpg (where @ is this project root.)
+ * @example
+ *   buildImagePath('http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg')
+ *   => "@/data/SSSS/01/SSSS_01-001.jpg" (where @ is this project root.)
  *
  * @param {String} imageUrl - the URL to the image.
  * @returns {Promise}       - A promise that returns an array if resolved
@@ -43,21 +46,35 @@ const releaseNameRegex = /\/product\/.+\/.+_(.+)-.+.jpg/;
  * @rejects {Error}         - An error which states the cause.
  */
 const buildImagePath = (imageUrl) => {
-
-  let setName = setNameRegex.exec(imageUrl)[1];
+  let setAbbr = setAbbrRegex.exec(imageUrl)[1];
   let imageName = imageNameRegex.exec(imageUrl)[1];
   let releaseName = releaseNameRegex.exec(imageUrl)[1];
-  debug(`setName:${setName}, imageName:${imageName}, releaseName:${releaseName}`);
-  return path.join(__dirname, '..', 'data', setName, releaseName, imageName);
+  debug(`setAbbr:${setAbbr}, imageName:${imageName}, releaseName:${releaseName}`);
+  return path.join(__dirname, '..', 'data', setAbbr, releaseName, imageName);
 }
 
+/**
+ * buildCardDataPath
+ *
+ * Accepts a card URL as it's parameter and returns a string of the
+ * perfect path on disk where the card data JSON should be saved.
+ * The perfect path includes set abbreviation (ex: HMK,)
+ * release number (ex: 01) and image name. (ex: HMK_01-001.json.)
+ *
+ * @example buildCardDataPath({"set": "HMK", "number": "01-001", ... })
+ *          => "@/data/HMK/01/HMK_01-001.json" (where @ is project root)
+ *
+ * @param {String} cardUrl  - the URL to the card page on p-memories website.
+ * @returns {Promise}       - A promise that returns a string if resolved
+ *                            or an error if rejected.
+ * @resolve {String}        - An absolute path on disk.
+ * @rejects {Error}         - An error which states the cause.
+ */
 const buildCardDataPath = (cardData) => {
-  // input: { "set": "HMK", "number": "01-001", ... }
-  // output: @/data/HMK/01/HMK_01-001.json
-  let set = cardData.set;
+  let setAbbr = cardData.setAbbr;
   let number = cardData.number;
   let release = cardData.number.substr(0, cardData.number.indexOf('-'));
-  return path.join(__dirname, '..', 'data', set, release, `${set}_${number}.json`);
+  return path.join(__dirname, '..', 'data', setAbbr, release, `${setAbbr}_${number}.json`);
 }
 
 /**
@@ -73,7 +90,12 @@ const buildCardDataPath = (cardData) => {
  * @rejects {Error}         - An error which states the cause.
  */
 const downloadImage = (targetUrl) => {
-  if (cardPageRegex.test(targetUrl)) {
+  if (typeof targetUrl === 'object') {
+    // we might have got a card data object rather than a string URL
+    if (targetUrl.image) return downloadImage(targetUrl.image);
+    else throw new Error('targetUrl does not contain an image URL!');
+  }
+  else if (cardPageRegex.test(targetUrl)) {
     // targetUrl is a card page
     return ripCardData(targetUrl)
       .then((cardData) => {
@@ -85,7 +107,8 @@ const downloadImage = (targetUrl) => {
     return axios({
       method: 'get',
       url: targetUrl,
-      responseType: 'stream'
+      responseType: 'stream',
+      headers: customHeaders
     })
     .then((res) => {
       // ensure dir exists
@@ -126,8 +149,11 @@ const normalizeUrl = (url) => {
 const ripSetData = (setUrl, dataAcc) => {
   debug(`ripping set data from ${setUrl}`);
   setUrl = normalizeUrl(setUrl);
-  return axios
-    .get(setUrl)
+  return axios({
+      method: 'get',
+      url: setUrl,
+      headers: customHeaders
+    })
     .then((res) => {
       const $ = cheerio.load(res.data);
       if (typeof dataAcc === 'undefined') dataAcc = [];
@@ -161,14 +187,19 @@ const ripSetData = (setUrl, dataAcc) => {
  * @rejects {Error}       - An error which states the cause
  */
 const ripCardData = (cardUrl) => {
-  return axios
-    .get(cardUrl)
+  return axios({
+      method: 'get',
+      url: normalizeUrl(cardUrl),
+      headers: customHeaders
+    })
     .then((res) => {
       const $ = cheerio.load(res.data);
       let data = {};
+
+      /** Data gathered from the card data table on the webpage */
       data.number = $('.cardDetail > dl:nth-child(1) > dd:nth-child(2)').text();
       data.rarity = $('.cardDetail > dl:nth-child(2) > dd:nth-child(2)').text();
-      data.set = $('.cardDetail > dl:nth-child(3) > dd:nth-child(2)').text();
+      data.setName = $('.cardDetail > dl:nth-child(3) > dd:nth-child(2)').text();
       data.name = $('.cardDetail > dl:nth-child(4) > dd:nth-child(2)').text();
       data.type = $('.cardDetail > dl:nth-child(5) > dd:nth-child(2)').text();
       data.usageCost = $('.cardDetail > dl:nth-child(6) > dd:nth-child(2)').text();
@@ -180,8 +211,12 @@ const ripCardData = (cardUrl) => {
       data.parallel = $('.cardDetail > dl:nth-child(12) > dd:nth-child(2)').text();
       data.text = $('.cardDetail > dl:nth-child(13) > dd:nth-child(2)').text();
       data.flavor = $('.cardDetail > dl:nth-child(14) > dd:nth-child(2)').text();
+
+      /** Data that I think is good which isn't specifically in the page */
       data.image = $('.Images_card > img:nth-child(1)').attr('src');
       data.image = `${rootUrl}${data.image}`;
+      data.url = cardUrl;
+      data.setAbbr = setAbbrRegex.exec(data.image)[1];
       return data;
     })
 }
@@ -212,20 +247,22 @@ const writeCardData = (cardData) => {
 
 
 /**
- * ripAll
+ * ripAllSets
  *
- * accepts no parameters and returns
+ * accepts no parameters and returns a list of set URLs found on p-memories
+ * website.
  *
- * @param {String} cardUrl - the URL to the card set
  * @returns {Promise}     - A promise that returns an array if resolved
  *                          or an error if rejected
- * @resolve {Object}      - An object containing card data such as title,
- *                          description, rarity, type, AP, DP, image URL, etc.
+ * @resolve {Array}       - An array containing set URLs
  * @rejects {Error}       - An error which states the cause
  */
-const ripAll = () => {
-  return axios
-  .get(`${rootUrl}/card_product_list_page`)
+const ripAllSets = () => {
+  return axios({
+      method: 'get',
+      url: `${rootUrl}/card_product_list_page`,
+      headers: customHeaders
+    })
   .then((res) => {
     const $ = cheerio.load(res.data);
     let products = [];
@@ -235,25 +272,59 @@ const ripAll = () => {
     });
     return products;
   })
-  .then((products) => {
-    return new Promise.each((resolve, reject) => {
-
-    })
-  })
 }
 
 
-// ripAllSets
-// for each set, ripSetData. => cardUrls
+// ripAllSets => setUrls
+// for each setUrl, ripSetData. => cardUrls
 // for each cardUrl, ripCardData. => cardData
 // for each cardData, writeCardData => jsonFilePath
-// for each jsonFilePath, downloadImage
+// for each cardData, downloadImage => imagePath
 
+/**
+ * ripperoni
+ *
+ * accepts no parameters and downloads all card data and card images
+ * found p-memories.com.
+ *
+ * @returns {Promise}     - A promise that returns a number if resolved
+ *                          or an error if rejected
+ * @resolve {Number}      - The number of card data ripped from p-memories
+ * @rejects {Error}       - An error which states the cause
+ */
+const ripperoni = () => {
+  let dataCounter, imageCounter = 0;
+  console.log('ripping all sets');
+  return ripAllSets().then((setUrls) => {
+    return Promise.mapSeries(setUrls, (setUrl) => {
+      console.log(`ripping set data ${setUrl}`);
+      return ripSetData(setUrl).then((cardUrls) => {
+        return Promise.mapSeries(cardUrls, (cardUrl) => {
+        console.log(`ripping card data ${cardUrl}`);
+          return ripCardData(cardUrl).then((cardData) => {
+            let imageWriteP = downloadImage(cardData);
+            let dataWriteP = writeCardData(cardData);
+            return Promise.all([imageWriteP, dataWriteP]);
+          }).then((writeResult) => {
+            if (writeResult[0]) dataCounter++;
+            if (writeResult[1]) imageCounter++;
+          })
+        })
+      })
+    })
+  }).catch((e) => {
+    console.error(e);
+  }).then(() => {
+    console.log(`done. card data: ${dataCounter}. images: ${imageCounter}`);
+    return (dataCounter);
+  })
+}
 
 module.exports = {
-  ripAll,
-  ripCardData,
+  ripperoni,
+  ripAllSets,
   ripSetData,
+  ripCardData,
   writeCardData,
   buildImagePath,
   buildCardDataPath,
