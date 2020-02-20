@@ -17,13 +17,38 @@ const fs = require('fs');
 const fsp = require('fs').promises;
 const path = require('path');
 const debug = require('debug')('precious-data');
+
+// constants
 const rootUrl = 'http://p-memories.com';
+const cardPageRegex = /p-memories.com\/node\/\d+/;
+const setNameRegex = /product\/(.+)\//;
+const imageNameRegex = /\/product\/.+\/(.+_.+-.+.jpg)/;
+const releaseNameRegex = /\/product\/.+\/.+_(.+)-.+.jpg/;
 
-
+/**
+ * buildImagePath
+ *
+ * Accepts an image URL as it's parameter and returns
+ * a string of the perfect path on disk where the image should be saved.
+ * The perfect path includes set abbreviation (ex: HMK,)
+ * release number (ex: 01) and image name. (ex: HMK_01-001.json.)
+ *
+ * Example input: http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg
+ * Example output: @/data/SSSS/01/SSSS_01-001.jpg (where @ is this project root.)
+ *
+ * @param {String} imageUrl - the URL to the image.
+ * @returns {Promise}       - A promise that returns an array if resolved
+ *                            or an error if rejected.
+ * @resolve {String}        - An absolute path on disk.
+ * @rejects {Error}         - An error which states the cause.
+ */
 const buildImagePath = (imageUrl) => {
-  // input: http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg
-  // output: @/data/SSSS/SSSS_01-001.jpg
-  return path.join(__dirname, '..', 'data', imageUrl.substr(imageUrl.indexOf('product/')+7));
+
+  let setName = setNameRegex.exec(imageUrl)[1];
+  let imageName = imageNameRegex.exec(imageUrl)[1];
+  let releaseName = releaseNameRegex.exec(imageUrl)[1];
+  debug(`setName:${setName}, imageName:${imageName}, releaseName:${releaseName}`);
+  return path.join(__dirname, '..', 'data', setName, releaseName, imageName);
 }
 
 const buildCardDataPath = (cardData) => {
@@ -35,23 +60,43 @@ const buildCardDataPath = (cardData) => {
   return path.join(__dirname, '..', 'data', set, release, `${set}_${number}.json`);
 }
 
-const downloadImage = (imageUrl) => {
-  return axios({
-    method: 'get',
-    url: imageUrl,
-    responseType: 'stream'
-  })
-  .then((res) => {
-    // ensure dir exists
-    let imagePath = buildImagePath(imageUrl);
-    return fsp.mkdir(path.dirname(imagePath), { recursive: true }).then(() => {
-      res.data.pipe(fs.createWriteStream(imagePath));
-      return imagePath;
+/**
+ * downloadImage
+ *
+ * Accepts a card image URL OR card URL as it's parameter and returns
+ * a string of the path on disk where the image was saved.
+ *
+ * @param {String} targetUrl - the URL to the image or card page
+ * @returns {Promise}       - A promise that returns an array if resolved
+ *                            or an error if rejected.
+ * @resolve {String}        - A string which tells where the image was saved.
+ * @rejects {Error}         - An error which states the cause.
+ */
+const downloadImage = (targetUrl) => {
+  if (cardPageRegex.test(targetUrl)) {
+    // targetUrl is a card page
+    return ripCardData(targetUrl)
+      .then((cardData) => {
+        return downloadImage(cardData.image);
+      });
+  } else {
+    // targetUrl is a card image
+    if (targetUrl)
+    return axios({
+      method: 'get',
+      url: targetUrl,
+      responseType: 'stream'
     })
-  })
-  .then(() => {
-
-  })
+    .then((res) => {
+      // ensure dir exists
+      let imagePath = buildImagePath(targetUrl);
+      debug(`writing image to ${imagePath}`);
+      return fsp.mkdir(path.dirname(imagePath), { recursive: true }).then(() => {
+        res.data.pipe(fs.createWriteStream(imagePath));
+        return imagePath;
+      })
+    })
+  }
 }
 
 const normalizeUrl = (url) => {
@@ -63,7 +108,21 @@ const normalizeUrl = (url) => {
 }
 
 
-// collect set's images and card data.
+/**
+ * ripSetData
+ *
+ * Accepts a set URL as parameter and returns a list of card URLs
+ * which belong in the set.
+ *
+ * @param {String} setUrl - the URL to the card set
+ * @param {Array} dataAcc - array accumulator which contains the list of card
+ *                          URLs. Used for recursive calls of this function
+ *                          during ripping of multi-page sets.
+ * @returns {Promise}     - A promise that returns an array if resolved
+ *                          or an error if rejected
+ * @resolve {Array}       - A list of card URLs contained in this set.
+ * @rejects {Error}       - An error which states the cause
+ */
 const ripSetData = (setUrl, dataAcc) => {
   debug(`ripping set data from ${setUrl}`);
   setUrl = normalizeUrl(setUrl);
@@ -88,6 +147,19 @@ const ripSetData = (setUrl, dataAcc) => {
     })
 }
 
+/**
+ * ripCardData
+ *
+ * accepts a card URL as it's parameter and returns an object containing card
+ * data and card image URL.
+ *
+ * @param {String} cardUrl - the URL to the card set
+ * @returns {Promise}     - A promise that returns an array if resolved
+ *                          or an error if rejected
+ * @resolve {Object}      - An object containing card data such as title,
+ *                          description, rarity, type, AP, DP, image URL, etc.
+ * @rejects {Error}       - An error which states the cause
+ */
 const ripCardData = (cardUrl) => {
   return axios
     .get(cardUrl)
@@ -114,13 +186,43 @@ const ripCardData = (cardUrl) => {
     })
 }
 
+/**
+ * writeCardData
+ *
+ * Accepts an object containing card data, and creates a JSON string
+ * which is written to the appropriate location on disk.
+ *
+ * @param {Object} cardData - the card data
+ * @returns {Promise}       - A promise that returns an array if resolved
+ *                            or an error if rejected
+ * @resolve {String}        - The abs location on disk where the JSON was saved.
+ * @rejects {Error}         - An error which states the cause
+ */
 const writeCardData = (cardData) => {
   let cardDataPath = buildCardDataPath(cardData);
   return fsp.mkdir(path.dirname(cardDataPath), { recursive: true }).then(() => {
-    return fsp.writeFile(cardDataPath, JSON.stringify(cardData), { encoding: 'utf-8' });
+    return fsp.writeFile(
+      cardDataPath, JSON.stringify(cardData),
+      { encoding: 'utf-8' }
+    ).then(() => {
+      return cardDataPath;
+    })
   });
 }
 
+
+/**
+ * ripAll
+ *
+ * accepts no parameters and returns
+ *
+ * @param {String} cardUrl - the URL to the card set
+ * @returns {Promise}     - A promise that returns an array if resolved
+ *                          or an error if rejected
+ * @resolve {Object}      - An object containing card data such as title,
+ *                          description, rarity, type, AP, DP, image URL, etc.
+ * @rejects {Error}       - An error which states the cause
+ */
 const ripAll = () => {
   return axios
   .get(`${rootUrl}/card_product_list_page`)
@@ -139,6 +241,13 @@ const ripAll = () => {
     })
   })
 }
+
+
+// ripAllSets
+// for each set, ripSetData. => cardUrls
+// for each cardUrl, ripCardData. => cardData
+// for each cardData, writeCardData => jsonFilePath
+// for each jsonFilePath, downloadImage
 
 
 module.exports = {

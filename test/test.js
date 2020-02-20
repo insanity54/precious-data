@@ -30,20 +30,29 @@ describe('P-Memories Ripper', function() {
   })
 
   describe('ripSetData', function () {
-    it('should get a list of card URLs', function () {
+    it('should return a list of card URLs', function () {
+      this.timeout(30000)
+      return ripper.ripSetData('http://p-memories.com/card_product_list_page?field_title_nid=241831-ClariS&s_flg=on')
+        .then((data) => {
+          assert.isArray(data);
+          assert.lengthOf(data, 1);
+        })
+    });
+
+    it('should rip a set which contains more than one page', function () {
       this.timeout(30000)
       return ripper.ripSetData('http://p-memories.com/card_product_list_page?field_title_nid=280695-%E5%88%9D%E9%9F%B3%E3%83%9F%E3%82%AF&s_flg=on')
         .then((data) => {
           assert.isArray(data);
           assert.lengthOf(data, 403);
         })
-    })
+    });
   })
 
   describe('ripCardData', function () {
     it('Should get card data from a card URL', function () {
       return ripper
-      .ripCardData('http://localhost:8787/01-001.html')
+      .ripCardData('http://p-memories.com/node/926791')
       .then((data) => {
         assert.isObject(data);
         assert.equal(data.number, '01-001');
@@ -68,23 +77,40 @@ describe('P-Memories Ripper', function() {
   describe('writeCardData', function () {
     it('should create a JSON file in the appropriate folder', function () {
       let cardData = require('../fixtures/HMK_01-001.json');
-      console.log(cardData)
       return ripper
         .writeCardData(cardData)
-        .then(() => {
+        .then((res) => {
           let cardDataResult = require('../data/HMK/01/HMK_01-001.json');
           assert.equal(cardDataResult.name, '初音 ミク');
+          assert.match(res, /\/data\/HMK\/01\/HMK_01-001.json/);
         })
     });
   });
 
   describe('downloadImage', function () {
-    it('Should get the card image from the card URL', function () {
-      let imageUrl = 'http://localhost:8787/images/product/SSSS/SSSS_01-001.jpg'
+    this.timeout(30000);
+    let correctImagePath = path.join(
+      __dirname,
+      '..',
+      'data',
+      'SSSS',
+      '01',
+      'SSSS_01-001.jpg'
+    );
+    it('Should accept a card URL and download the card image and write it to the correct folder', function () {
+      let cardUrl = 'http://p-memories.com/node/926791';
+      return ripper
+        .downloadImage(cardUrl)
+        .then(() => {
+          assert.isDefined(fs.readFileSync(correctImagePath, { encoding: 'utf-8' }));
+        });
+    });
+    it('Should download a card image and place it in the correct folder', function () {
+      let imageUrl = 'http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg';
       return ripper
         .downloadImage(imageUrl)
         .then(() => {
-          assert.isDefined(fs.readFileSync(ripper.buildImagePath(imageUrl), { encoding: 'utf-8' }));
+          assert.isDefined(fs.readFileSync(correctImagePath, { encodiing: 'utf-8' }));
         });
     });
   });
@@ -94,7 +120,7 @@ describe('P-Memories Ripper', function() {
       // input: http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg
       // output: ../SSSS/SSSS_01-001.jpg
       let path = ripper.buildImagePath('http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg');
-      assert.match(path, /\/data\/SSSS\/SSSS_01-001.jpg/);
+      assert.match(path, /\/data\/SSSS\/01\/SSSS_01-001.jpg/);
     });
   });
 
