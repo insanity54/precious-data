@@ -1,23 +1,9 @@
 const assert = require('chai').assert;
 const ripper = require('../util/ripper');
 const fs = require('fs');
-const express = require('express');
-const app = express();
 const path = require('path');
-app.use(express.static(path.join(__dirname, '..', 'fixtures')));
-let fixtureServer;
 
 
-before((done) => {
-  fixtureServer = app.listen(8787, () => {
-    done();
-  });
-})
-
-after((done) => {
-  fixtureServer.close();
-  done();
-})
 
 
 describe('P-Memories Ripper', function() {
@@ -108,6 +94,7 @@ describe('P-Memories Ripper', function() {
         .then((data) => {
           assert.isObject(data);
           assert.equal(data.number, '01-001');
+          assert.equal(data.url, 'http://p-memories.com/node/926791');
         })
     });
   })
@@ -182,7 +169,7 @@ describe('P-Memories Ripper', function() {
 
   describe('ripperoni', function () {
     it('should return a total number of card data ripped from p-memories website', function () {
-      this.timeout(60 * 1000 * 10)
+      this.timeout(1000 * 60 * 60 * 3) // 3 hours
       return ripper.ripperoni()
         .then((count) => {
           assert.isNumber(count);

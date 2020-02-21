@@ -13,19 +13,19 @@
   "keywords": [
     "precious",
     "memories",
-    "tcg"
+    "tcg",
+    "card",
+    "database",
+    "rip",
+    "scrape",
+    "p-memories"
   ],
   "author": "Chris Grimmett <chris@grimtech.net>",
   "license": "Unlicense",
   "devDependencies": {
     "chai": "^4.2.0",
     "cheerio": "^1.0.0-rc.3",
-    "express": "^4.17.1",
-    "karma": "^4.4.1",
-    "karma-firefox-launcher": "^1.3.0",
-    "slimerjs": "^1.0.0",
-    "superagent": "^5.2.1",
-    "superagent-cheerio": "^1.0.1"
+    "express": "^4.17.1"
   },
   "dependencies": {
     "axios": "^0.19.2",

@@ -12,20 +12,28 @@
 
 const axios = require('axios');
 const cheerio = require('cheerio');
+const debug = require('debug')('precious-data');
+const throttleRequests = require('./throttleRequests');
 const Promise = require('bluebird');
 const fs = require('fs');
 const fsp = require('fs').promises;
 const path = require('path');
-const debug = require('debug')('precious-data');
 
 // constants
 const version = require(path.join(__dirname, '..', 'package.json')).version;
-const customHeaders = {'User-Agent': `precious-data/${version}`};
+const customHeaders = {'User-Agent': `precious-data/${version}`, 'Cache-Control': 'no-cache' };
 const rootUrl = 'http://p-memories.com';
 const cardPageRegex = /p-memories.com\/node\/\d+/;
 const setAbbrRegex = /product\/(.+)\//;
 const imageNameRegex = /\/product\/.+\/(.+_.+-.+.jpg)/;
 const releaseNameRegex = /\/product\/.+\/.+_(.+)-.+.jpg/;
+const httpAgent = axios.create({
+  method: 'get',
+  baseURL: rootUrl,
+  headers: customHeaders
+});
+throttleRequests(httpAgent, 5000);
+
 
 /**
  * buildImagePath
@@ -104,12 +112,8 @@ const downloadImage = (targetUrl) => {
   } else {
     // targetUrl is a card image
     if (targetUrl)
-    return axios({
-      method: 'get',
-      url: targetUrl,
-      responseType: 'stream',
-      headers: customHeaders
-    })
+    return httpAgent
+    .request({ url: targetUrl, responseType: 'stream' })
     .then((res) => {
       // ensure dir exists
       let imagePath = buildImagePath(targetUrl);
@@ -149,11 +153,8 @@ const normalizeUrl = (url) => {
 const ripSetData = (setUrl, dataAcc) => {
   debug(`ripping set data from ${setUrl}`);
   setUrl = normalizeUrl(setUrl);
-  return axios({
-      method: 'get',
-      url: setUrl,
-      headers: customHeaders
-    })
+  return httpAgent
+    .request({ url: setUrl })
     .then((res) => {
       const $ = cheerio.load(res.data);
       if (typeof dataAcc === 'undefined') dataAcc = [];
@@ -187,11 +188,8 @@ const ripSetData = (setUrl, dataAcc) => {
  * @rejects {Error}       - An error which states the cause
  */
 const ripCardData = (cardUrl) => {
-  return axios({
-      method: 'get',
-      url: normalizeUrl(cardUrl),
-      headers: customHeaders
-    })
+  return httpAgent
+    .request({ url: normalizeUrl(cardUrl) })
     .then((res) => {
       const $ = cheerio.load(res.data);
       let data = {};
@@ -215,7 +213,7 @@ const ripCardData = (cardUrl) => {
       /** Data that I think is good which isn't specifically in the page */
       data.image = $('.Images_card > img:nth-child(1)').attr('src');
       data.image = `${rootUrl}${data.image}`;
-      data.url = cardUrl;
+      data.url = normalizeUrl(cardUrl);
       data.setAbbr = setAbbrRegex.exec(data.image)[1];
       return data;
     })
@@ -258,20 +256,20 @@ const writeCardData = (cardData) => {
  * @rejects {Error}       - An error which states the cause
  */
 const ripAllSets = () => {
-  return axios({
-      method: 'get',
-      url: `${rootUrl}/card_product_list_page`,
-      headers: customHeaders
+  return httpAgent
+    .request({ url: '/card_product_list_page' })
+    .then((res) => {
+      const $ = cheerio.load(res.data);
+      let products = [];
+      let ul = $('ul.productlist a');
+      ul.each(function (i, el) {
+        products.push($(this).attr('href'));
+      });
+      return products;
     })
-  .then((res) => {
-    const $ = cheerio.load(res.data);
-    let products = [];
-    let ul = $('ul.productlist a');
-    ul.each(function (i, el) {
-      products.push($(this).attr('href'));
-    });
-    return products;
-  })
+    .catch(e => {
+      console.error(e);
+    })
 }
 
 
@@ -294,13 +292,13 @@ const ripAllSets = () => {
  */
 const ripperoni = () => {
   let dataCounter, imageCounter = 0;
-  console.log('ripping all sets');
+  debug('ripping all sets');
   return ripAllSets().then((setUrls) => {
     return Promise.mapSeries(setUrls, (setUrl) => {
-      console.log(`ripping set data ${setUrl}`);
+      debug(`ripping set data ${setUrl}`);
       return ripSetData(setUrl).then((cardUrls) => {
         return Promise.mapSeries(cardUrls, (cardUrl) => {
-        console.log(`ripping card data ${cardUrl}`);
+        debug(`ripping card data ${cardUrl}`);
           return ripCardData(cardUrl).then((cardData) => {
             let imageWriteP = downloadImage(cardData);
             let dataWriteP = writeCardData(cardData);
