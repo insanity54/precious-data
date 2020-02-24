@@ -5,12 +5,11 @@ const path = require('path');
 
 
 
-
-describe('P-Memories Ripper', function() {
-  describe('ripAllSets', function () {
+describe('P-Memories Ripper Library', function() {
+  describe('getSetUrls', function () {
     this.timeout(30000);
     it('should return a list of all set URLs found on p-memories.com', function () {
-      return ripper.ripAllSets().then((setList) => {
+      return ripper.getSetUrls().then((setList) => {
         assert.isArray(setList);
         assert.isAtLeast(setList.length, 94);
         assert.includeMembers(
@@ -31,7 +30,7 @@ describe('P-Memories Ripper', function() {
       let url = ripper.normalizeUrl('/card_product_list_page?page=1&field_title_nid=280695-%E5%88%9D%E9%9F%B3%E3%83%9F%E3%82%AF&s_flg=on');
       assert.equal(url, 'http://p-memories.com/card_product_list_page?page=1&field_title_nid=280695-%E5%88%9D%E9%9F%B3%E3%83%9F%E3%82%AF&s_flg=on')
     });
-  })
+  });
 
   describe('ripSetData', function () {
     it('should return a list of card URLs', function () {
@@ -59,8 +58,17 @@ describe('P-Memories Ripper', function() {
           assert.isArray(data);
           assert.lengthOf(data, 1);
         })
+    });
+
+    it('should download madoka release 03', function () {
+      this.timeout(30000);
+      return ripper.ripSetData('http://p-memories.com/card_product_list_page?field_title_nid=313372-%E5%8A%87%E5%A0%B4%E7%89%88+%E9%AD%94%E6%B3%95%E5%B0%91%E5%A5%B3%E3%81%BE%E3%81%A9%E3%81%8B%E2%98%86%E3%83%9E%E3%82%AE%E3%82%AB&s_flg=on')
+        .then((data) => {
+          assert.isArray(data);
+          assert.isAbove(data.length, 1);
+        })
     })
-  })
+  });
 
   describe('ripCardData', function () {
     this.timeout(30000);
@@ -97,7 +105,7 @@ describe('P-Memories Ripper', function() {
           assert.equal(data.url, 'http://p-memories.com/node/926791');
         })
     });
-  })
+  });
 
   describe('writeCardData', function () {
     it('should create a JSON file in the appropriate folder', function () {
@@ -107,6 +115,18 @@ describe('P-Memories Ripper', function() {
         .then((res) => {
           let cardDataResult = require('../data/HMK/01/HMK_01-001.json');
           assert.equal(cardDataResult.name, '初音 ミク');
+          assert.match(res, /\/data\/HMK\/01\/HMK_01-001.json/);
+        })
+    });
+
+    it('should not overwrite locally modified JSON files.', function () {
+      let cardData = require('../fixtures/HMK_01-001.json');
+      return ripper
+        .writeCardData(cardData)
+        .then((res) => {
+          let cardDataResult = require('../data/HMK/01/HMK_01-001.json');
+          assert.equal(cardDataResult.nameEn, 'Hatsune Miku');
+          assert.equal(cardDataResult.setNameEn, 'Hatsune Miku');
           assert.match(res, /\/data\/HMK\/01\/HMK_01-001.json/);
         })
     });
@@ -165,17 +185,100 @@ describe('P-Memories Ripper', function() {
       let path = ripper.buildCardDataPath(require('../fixtures/HMK_01-001.json'));
       assert.match(path, /\/data\/HMK\/01\/HMK_01-001.json/);
     });
-  })
+  });
 
-  describe('ripperoni', function () {
-    it('should return a total number of card data ripped from p-memories website', function () {
-      this.timeout(1000 * 60 * 60 * 3) // 3 hours
-      return ripper.ripperoni()
-        .then((count) => {
-          assert.isNumber(count);
-          assert.isAbove(count, 1000);
-        })
+  describe('identifyUrl', function () {
+    it('should return the string, "card" when fed a card URL', function () {
+      let urlType = ripper.identifyUrl('http://p-memories.com/node/906300');
+      assert.equal(urlType, 'card');
+    });
+    it('should return the string, "set" when fed a card URL', function () {
+      let urlType = ripper.identifyUrl('http://p-memories.com/card_product_list_page?field_title_nid=845152-NEW+GAME%21');
+      assert.equal(urlType, 'set');
+    });
+    it('should return the String, "unknown" when fed an empty URL', function () {
+      let urlType = ripper.identifyUrl('');
+      assert.equal(urlType, 'unknown');
+    });
+    it('should return the String, "unknown" when fed a foreign URL', function () {
+      let urlType = ripper.identifyUrl('https://www.youtube.com/watch?v=JQlkfkvR9A0');
+      assert.equal(urlType, 'unknown');
     });
   });
+
+  describe('getSetUrlFromSetAbbr', function () {
+    it('Should return the correct URL for SSSS.GRIDMAN', function () {
+      return ripper.getSetUrlFromSetAbbr('SSSS')
+        .then((url) => {
+          assert.equal(url, 'http://p-memories.com/card_product_list_page?field_title_nid=919863-SSSS.GRIDMAN&s_flg=on')
+        })
+    });
+    it('Should return the correct URL for ookami', function () {
+      return ripper.getSetUrlFromSetAbbr('ookami')
+        .then((url) => {
+          assert.equal(url, 'http://p-memories.com/card_product_list_page?field_title_nid=4539-%E3%82%AA%E3%82%AA%E3%82%AB%E3%83%9F%E3%81%95%E3%82%93%E3%81%A8%E4%B8%83%E4%BA%BA%E3%81%AE%E4%BB%B2%E9%96%93%E3%81%9F%E3%81%A1&s_flg=on');
+        })
+    });
+
+    it('Should return an error if an unknown set is requested', function () {
+      return ripper.getSetUrlFromSetAbbr('tacobell')
+        .catch((e) => {
+          assert.match(e, /matchingPair not found/);
+        })
+    });
+  })
+
+  describe('getSetAbbrFromImageUrl', function () {
+    it('Should return SSSS when receiving param http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg', function () {
+      let setAbbr = ripper.getSetAbbrFromImageUrl('http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg');
+      assert.equal(setAbbr, 'SSSS');
+    })
+  });
+
+  describe('getFirstCardImageUrl', function () {
+    it('Should accept a set URL and return the image URL for the first card in the set', function () {
+      this.timeout(10000);
+      return ripper.getFirstCardImageUrl('http://p-memories.com/card_product_list_page?field_title_nid=31466-%E9%9B%BB%E6%B3%A2%E5%A5%B3%E3%81%A8%E9%9D%92%E6%98%A5%E7%94%B7&s_flg=on')
+        .then((imageUrl) => {
+          assert.equal(imageUrl, 'http://p-memories.com/images/product/DNP/DNP_01-001.jpg');
+        })
+    })
+  });
+
+  describe('getImageUrlFromEachSet', function () {
+    it('Should accept no parameters and return an array of objects with sampleCardUrl and setUrl k/v', function () {
+      this.timeout(1000*60*10);
+      return ripper.getImageUrlFromEachSet()
+        .then((imageUrls) => {
+          let indexPath = path.join(__dirname, '..', 'data', 'setAbbrIndex.json');
+          assert.isArray(imageUrls);
+          assert.lengthOf(imageUrls, 94);
+          assert.isObject(imageUrls[0]);
+          assert.isString(imageUrls[0].setUrl);
+          assert.isString(imageUrls[0].sampleCardUrl);
+          assert.includeMembers(imageUrls, ['http://p-memories.com/images/product/DNP/DNP_01-001.jpg']);
+        });
+    });
+  });
+
+  describe('createSetAbbreviationIndex', function () {
+    it('should create setAbbrIndex.json in the data folder', function () {
+      this.timeout(1000*60*10);
+      return ripper.createSetAbbreviationIndex()
+        .then((imageUrls) => {
+          let indexPath = path.join(__dirname, '..', 'data', 'setAbbrIndex.json');
+          let setAbbrIndex = require(indexPath);
+          assert.isArray(setAbbrIndex);
+          assert.isString(setAbbrIndex[0].setUrl);
+          assert.isString(setAbbrIndex[0].setAbbr);
+          assert.deepInclude(setAbbrIndex, {
+            setUrl: 'http://p-memories.com/images/product/DNP/DNP_01-001.jpg',
+            setAbbr: 'ika'
+          });
+        });
+    })
+  })
+
+
 
 });
