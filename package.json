@@ -6,9 +6,9 @@
   "scripts": {
     "test": "DEBUG=precious-data mocha",
     "rip": "DEBUG=precious-data node util/ripper.js",
-    "fixture": "node util/fixture.js",
     "dev": "npx supervisor index",
-    "start": "node index"
+    "start": "node index",
+    "jsdoc": "npx jsdoc -d ./out/ ./util/ripper.js"
   },
   "keywords": [
     "precious",
@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "axios": "^0.19.2",
-    "bluebird": "^3.7.2"
+    "bluebird": "^3.7.2",
+    "commander": "^4.1.1"
   }
 }

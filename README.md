@@ -48,16 +48,6 @@ This data display is meant to be a quick way to browse card data and verify that
 
 (see below note on fixtures.)
 
-### 4) Fixtures
-
-Fixtures is a fancy word for any object which will be tested. While writing integration tests, it is common to need to run those tests over and over. Integration tests *could* be tested against the live P-Memories website, but that would be rude. Instead, Precious Data has the functionality to download a variety of P-Memories webpages, and run the integration tests against those offline copies.
-
-Fixtures must be created **before** running tests. Fixtures only need to be done once.
-
-**Usage:**
-
-    npm run fixture
-
 
 ## TL;DR:
 
