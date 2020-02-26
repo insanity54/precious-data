@@ -1,5 +1,5 @@
 const debug = require('debug')('precious-data');
-const ripper = require('./ripper');
+const Ripper = require('./ripper');
 const commander = require('commander');
 const program = new commander.Command();
 const { version } = require('./misc');
@@ -30,7 +30,7 @@ program
   .option('-q, --quiet', "Hide command output", false)
   .action((options) => {
     debug(`url: ${options.url}`);
-      return ripper.rip({
+      let ripper = new Ripper({
         url: options.url,
         all: options.all,
         incremental: options.incremental,
@@ -38,7 +38,8 @@ program
         set: options.set,
         number: options.number,
         quiet: options.quiet,
-      })
+      });
+      return ripper.rip()
       .then((res) => {
         console.log(res);
       })
@@ -49,6 +50,15 @@ program
   .description('Create an index of card set abbreviations. Used when ripping card sets by name.')
   .option('-t, --throttle <seconds>', "Seconds to wait between requests. (A higher number is more polite.)", 5)
   .action((options) => {
+    let ripper = new Ripper({
+      url: options.url,
+      all: options.all,
+      incremental: options.incremental,
+      throttle: options.throttle,
+      set: options.set,
+      number: options.number,
+      quiet: options.quiet,
+    });
     return ripper.createSetAbbreviationIndex({
       throttle: options.throttle
     })

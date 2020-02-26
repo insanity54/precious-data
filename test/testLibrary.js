@@ -1,9 +1,12 @@
 const assert = require('chai').assert;
-const ripper = require('../util/ripper');
+const Ripper = require('../util/ripper');
 const fs = require('fs');
 const path = require('path');
 
-
+let ripper
+beforeEach(function () {
+  ripper = new Ripper();
+})
 
 describe('P-Memories Ripper Library', function() {
   describe('getSetUrls', function () {
@@ -279,6 +282,19 @@ describe('P-Memories Ripper Library', function() {
     })
   })
 
+  describe('conditionallyDownload', function () {
+    it('Should not download in incremental mode if image exists locally.', function () {
+      let cardData = require('../fixtures/HMK_01-001.json');
+      let beforeStats = fs.statSync(path.join(__dirname, '..', 'data', 'HMK', '01', 'HMK_01-001.jpg'));
+      return ripper
+        .conditionallyDownload(cardData)
+        .then((imagePath) => {
+          let afterStats = fs.statSync(imagePath);
+          console.log(`imagePath: ${imagePath} before:${beforeStats.mtimeMs} after: ${afterStats.mtimeMs}`)
+          assert.equal(afterStats.mtimeMs, beforeStats.mtimeMs);
+        })
+    });
+  })
 
 
 });

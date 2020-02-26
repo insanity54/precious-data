@@ -6,6 +6,7 @@ const cli = require(cliPath);
 const Promise = require('bluebird');
 const execFile = Promise.promisify(require('child_process').execFile);
 
+
 describe('p-data.js CLI', function () {
   describe('index subcommand', function () {
     it('should write index.json to the data directory', function () {
