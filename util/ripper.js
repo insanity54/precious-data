@@ -42,7 +42,7 @@ class Ripper {
    */
   constructor(options) {
     if (typeof options === 'undefined') options = {};
-    this.incremental = options.incremental || true;
+    this.incremental = options.incremental;
     this.url = options.url || undefined;
     this.throttle = options.throttle || 5;
     this.all = options.all || true;
@@ -392,7 +392,7 @@ class Ripper {
     } else if (urlType === 'set') {
       return this.ripSetData(url).then((cardUrls) => {
         return Promise.mapSeries(cardUrls, (cardUrl) => {
-          debug(`ripping card data ${cardUrl}`);
+          console.log(`ripping card data ${cardUrl}`);
           return this.ripCardData(cardUrl).then((cardData) => {
             let imageWriteP = this.downloadImage(cardData);
             let dataWriteP = this.writeCardData(cardData);
@@ -458,6 +458,8 @@ class Ripper {
 
     else if (this.set){
       console.log(`Ripping set ${this.set}`);
+      if (this.incremental === true) console.log('incremental mode ON');
+      else console.log('incremental mode OFF');
       return this.getSetUrlFromSetAbbr(this.set).then((setUrl) => {
         return this.ripUrl(setUrl);
       });
@@ -604,7 +606,7 @@ class Ripper {
     }
 }
 
-module.exports = Ripper
+module.exports = Ripper;
 
 
 // {
