@@ -1,7 +1,10 @@
-const assert = require('chai').assert;
+const chai = require("chai");
+const assert = chai.assert;
+const chaiAsPromised = require("chai-as-promised");
 const Ripper = require('../util/ripper');
 const fs = require('fs');
 const path = require('path');
+chai.use(chaiAsPromised);
 
 let ripper
 beforeEach(function () {
@@ -9,6 +12,31 @@ beforeEach(function () {
 })
 
 describe('P-Memories Ripper Library', function() {
+  describe('parseCardId', function () {
+    it('should return an object with setAbbr, release, number, and num', function () {
+      let p = ripper.parseCardId('HMK_01-001');
+      assert.equal(p.setAbbr, 'HMK');
+      assert.equal(p.release, '01');
+      assert.equal(p.number, '01-001');
+      assert.equal(p.num, '001');
+      assert.equal(p.id, 'HMK_01-001');
+    });
+
+    it('should accept an image URL as param', function () {
+      let p = ripper.parseCardId('http://p-memories.com/images/product/HMK/HMK_01-001.jpg');
+      assert.equal(p.setAbbr, 'HMK');
+      assert.equal(p.release, '01');
+      assert.equal(p.number, '01-001');
+      assert.equal(p.num, '001');
+      assert.equal(p.id, 'HMK_01-001');
+    });
+
+    it('should reject when the card ID is not valid', function () {
+      assert.throws(ripper.parseCardId.bind(ripper, 'tacobell'), /not valid/);
+    });
+
+  });
+
   describe('getSetUrls', function () {
     this.timeout(30000);
     it('should return a list of all set URLs found on p-memories.com', function () {
@@ -97,6 +125,9 @@ describe('P-Memories Ripper Library', function() {
         assert.equal(data.url, 'http://p-memories.com/node/926791');
         assert.equal(data.image, 'http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg');
         assert.equal(data.setAbbr, 'SSSS');
+        assert.equal(data.id, 'SSSS_01-001');
+        assert.equal(data.num, '001');
+        assert.equal(data.release, '01');
       })
     });
 

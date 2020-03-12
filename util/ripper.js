@@ -27,6 +27,8 @@ const setPageRegex = /p-memories.com\/card_product_list_page.+field_title_nid/;
 const setAbbrRegex = /product\/(.+)\//;
 const imageNameRegex = /\/product\/.+\/(.+_.+-.+.jpg)/;
 const releaseNameRegex = /\/product\/.+\/.+_(.+)-.+.jpg/;
+const cardIdRegex = /([A-Za-z]+)_((.+)-(\d+))/;
+const dataDir = path.join(__dirname, '..', 'data');
 const setAbbrIndexPath = path.join(__dirname, '..', 'data', 'setAbbrIndex.json');
 const httpAgent = axios.create({
   method: 'get',
@@ -229,11 +231,16 @@ class Ripper {
         data.text = $('.cardDetail > dl:nth-child(13) > dd:nth-child(2)').text();
         data.flavor = $('.cardDetail > dl:nth-child(14) > dd:nth-child(2)').text();
 
-        /** Data that I think is good which isn't specifically in the page */
+        /** Data that I think is good which isn't explicitly in the page */
         data.image = $('.Images_card > img:nth-child(1)').attr('src');
         data.image = `${rootUrl}${data.image}`;
         data.url = this.normalizeUrl(cardUrl);
         data.setAbbr = setAbbrRegex.exec(data.image)[1];
+        let { num, release, id } = this.parseCardId(data.image);
+        data.num = num;
+        data.release = release;
+        data.id = id;
+        console.log(data);
         return data;
       })
   }
@@ -269,6 +276,26 @@ class Ripper {
         return cardDataPath;
       })
     });
+  }
+
+  /**
+   * readCardData
+   *
+   * reads the card data on disk
+   *
+   * @param {String} cardId - the card ID number.
+   * @example
+   *     readCardData('HMK_01-001');
+   * @returns {Promise}       - A promise that returns an object if resolved
+   *                            or an error if rejected
+   * @resolve {Object}        - the card data read from disk
+   * @rejects {Error}
+   */
+  readCardData (cardId) {
+    return fsp.readFile(
+      path.join(__dirname, '..', 'data', 'setAbbrIndex.json'),
+      JSON.stringify(index)
+    )
   }
 
 
@@ -353,18 +380,43 @@ class Ripper {
    * @param {Object} cardData  - The cardData
    * @returns {Promise}        - A promise that returns a number if resolved
    *                             or an error if rejected
-   * @resolve {Array}         - An array containing result of this.downloadImage
-   *                            and this.writeCardData.
+   * @resolve {Array}          - An array containing result of this.downloadImage
+   *                             and this.writeCardData.
    * @rejects {Error}          - An error which states the cause
    */
-  conditionallyDownload (cardData) {
-
-    let localDataExists = this.isLocalData(cardData);
+  async conditionallyDownload (cardData) {
+    let localDataExists = await this.isLocalData(cardData);
     if (localDataExists)
     return checkCardExistence(cardData).then((cardData))
     let imageWriteP = this.downloadImage(cardData);
     let dataWriteP = this.writeCardData(cardData);
     return Promise.all([imageWriteP, dataWriteP]);
+  }
+
+  /**
+   * isLocalData
+   *
+   * Returns a promise of True or False depending on whether or not the
+   * card data exists on disk.
+   *
+   * @param {Object} cardData
+   * @returns {Promise}
+   * @resolve {Boolean}
+   * @rejects {Error}
+   */
+  isLocalData (cardData) {
+    return new Promise((resolve, reject) => {
+      let { number, name, url, setAbbr, release } = cardData;
+      let cardDataPath = path.join(dataDir, setAbbr, release, num);
+      console.log(cardDataPath);
+      let dataOnDisk;
+      try {
+        dataOnDisk = require(cardDataPath);
+        resolve(true);
+      } catch (e) {
+        resolve(false);
+      }
+    });
   }
 
   /**
@@ -456,13 +508,17 @@ class Ripper {
       return this.ripUrl(this.url);
     }
 
-    else if (this.set){
+    else if (this.set) {
       console.log(`Ripping set ${this.set}`);
       if (this.incremental === true) console.log('incremental mode ON');
       else console.log('incremental mode OFF');
       return this.getSetUrlFromSetAbbr(this.set).then((setUrl) => {
         return this.ripUrl(setUrl);
       });
+    }
+    else if (this.all) {
+      console.log('Ripping all.');
+      return this.ripAll();
     }
     else {
       console.error('Rip parameters are indeterminate');
@@ -604,27 +660,49 @@ class Ripper {
         return this.normalizeUrl(imageSrc);
       })
     }
+
+
+    /**
+     * parseCardId
+     *
+     * parses the card ID and returns an object containing
+     *   * setAbbr
+     *   * release
+     *   * number
+     *   * num
+     *   * id
+     *
+     * @param {String} cardId
+     * @returns {Promise} - A promise that returns an object if resolved
+     *                          or an error if rejected
+     * @resolve {Object}
+     * @rejects {Error}
+     */
+    parseCardId (cardId) {
+      let parseError = new Error(`cardId is not valid. CardId must be in the format <setAbbr>_<release>-<num>. Got: ${cardId}`);
+      let r = cardIdRegex.exec(cardId);
+      if (!r) throw parseError;
+      let id = r[0];
+      let setAbbr = r[1];
+      let number = r[2];
+      let release = r[3];
+      let num = r[4];
+      if (
+        typeof number === 'undefined' ||
+        typeof setAbbr === 'undefined' ||
+        typeof number === 'undefined' ||
+        typeof release === 'undefined' ||
+        typeof id === 'undefined'
+      )
+      throw parseError
+      return {
+        setAbbr,
+        number,
+        release,
+        num,
+        id
+      }
+    }
 }
 
 module.exports = Ripper;
-
-
-// {
-//   rip,
-//   ripUrl,
-//   ripAll,
-//   getSetUrls,
-//   ripSetData,
-//   ripCardData,
-//   writeCardData,
-//   buildImagePath,
-//   buildCardDataPath,
-//   downloadImage,
-//   normalizeUrl,
-//   identifyUrl,
-//   getSetUrlFromSetAbbr,
-//   getSetAbbrFromImageUrl,
-//   getFirstCardImageUrl,
-//   getImageUrlFromEachSet,
-//   createSetAbbreviationIndex
-// }

@@ -44,5 +44,11 @@ describe('p-data.js CLI', function () {
     xit('should have silent output when called with -q flag', function () {
 
     })
+
+    it('should rip all incrementally with a throttle', function () {
+      let program = cli.parse(['node', './p-data.js', 'rip', '-a', '-i', '-t', '3']);
+      assert.isDefined(program);
+      console.log(program);
+    })
   })
 })
