@@ -27,7 +27,7 @@ const setPageRegex = /p-memories.com\/card_product_list_page.+field_title_nid/;
 const setAbbrRegex = /product\/(.+)\//;
 const imageNameRegex = /\/product\/.+\/(.+_.+-.+.jpg)/;
 const releaseNameRegex = /\/product\/.+\/.+_(.+)-.+.jpg/;
-const cardIdRegex = /([\w\d]+)_(([\w\d]+)-([\d]+)([\w\d]*))/;
+const cardIdRegex = /([\w\d-]+)_(([\w\d]+)-([\d]+)([\w\d]*))/;
 const dataDir = path.join(__dirname, '..', 'data');
 const setAbbrIndexPath = path.join(__dirname, '..', 'data', 'setAbbrIndex.json');
 const httpAgent = axios.create({
@@ -216,7 +216,7 @@ class Ripper {
    * @rejects {Error}        - An error which states the cause
    */
   ripCardData (cardUrl, cardImageUrl) {
-    if (typeof cardImageUrl !== 'undefined') {
+    if (this.incremental && typeof cardImageUrl !== 'undefined') {
       return this.isLocalCard(cardImageUrl).then((isLocal) => {
         if (isLocal) {
           console.log(`${cardImageUrl} is local.`);
