@@ -26,6 +26,18 @@ describe('P-Memories Ripper Library', function() {
   });
 
   describe('parseCardId', function () {
+
+    /**
+    for Rubular testing:
+
+/images/product/PM_HS/PM_HS_01-002.jpg
+PM_HS_03-008
+http://p-memories.com/images/product/GPFN/GPFN_01-030a.jpg
+SSSS_P-001
+http://p-memories.com/images/product/HMK/HMK_01-001.jpg
+/images/product/PM_K-ON_Part2/PM_K-ON_Part2_02-048.jpg
+
+     */
     it('should return an object with setAbbr, release, number, and num', function () {
       let p = ripper.parseCardId('HMK_01-001');
       assert.equal(p.setAbbr, 'HMK');
@@ -99,6 +111,16 @@ describe('P-Memories Ripper Library', function() {
       assert.equal(p.id, 'PM_HS_01-002')
       assert.equal(p.variation, '')
     })
+
+    it('should handle a cardID with multiple underscores in the set name', function () {
+      let p = ripper.parseCardId('/images/product/PM_K-ON_Part2/PM_K-ON_Part2_02-048.jpg');
+      assert.equal(p.setAbbr, 'PM_K-ON_Part2')
+      assert.equal(p.release, '02')
+      assert.equal(p.number, '02-048')
+      assert.equal(p.num, '048')
+      assert.equal(p.id, 'PM_K-ON_Part2_02-048')
+      assert.equal(p.variation, '')
+    });
   });
 
   describe('getSetUrls', function () {
