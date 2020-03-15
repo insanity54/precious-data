@@ -1,0 +1,20 @@
+{
+  "setAbbr": "BBQ",
+  "setName": "Fake",
+  "number": "OZ-541",
+  "rarity": "SR",
+  "name": "fake card",
+  "cardType": "CH",
+  "colour": "GREEN",
+  "generationCost": "1",
+  "usageCost": "4",
+  "ap": "660",
+  "dp": "350",
+  "text": "this is a fake card for testing purposes",
+  "flavorText": "blah!",
+  "url": "http://www.example.com/",
+  "setAbbr": "BBQ",
+  "release": "OZ",
+  "num": "541",
+  "id": "BBQ_OZ-541"
+}

@@ -12,5 +12,10 @@
   "dp": "30",
   "text": "このカードが登場した場合、手札から『初音 ミク』のキャラ1枚を場に出すことができる。[アプローチ/両方]:《0》自分の「初音 ミク」2枚を休息状態にする。その場合、自分のキャラ1枚は、ターン終了時まで+10/±0または±0/+10を得る",
   "flavorText": "-",
-  "url": "http://p-memories.com/node/383031"
+  "url": "http://p-memories.com/node/383031",
+  "setAbbr": "HMK",
+  "release": "01",
+  "num": "001",
+  "id": "HMK_01-001",
+  "image": "http://p-memories.com/images/product/HMK/HMK_01-001.jpg"
 }

@@ -27,7 +27,7 @@ const setPageRegex = /p-memories.com\/card_product_list_page.+field_title_nid/;
 const setAbbrRegex = /product\/(.+)\//;
 const imageNameRegex = /\/product\/.+\/(.+_.+-.+.jpg)/;
 const releaseNameRegex = /\/product\/.+\/.+_(.+)-.+.jpg/;
-const cardIdRegex = /([A-Za-z]+)_((.+)-(\d+))/;
+const cardIdRegex = /([A-Za-z]+\d*)_((.+)-(\d+)([A-Za-z]*))/;
 const dataDir = path.join(__dirname, '..', 'data');
 const setAbbrIndexPath = path.join(__dirname, '..', 'data', 'setAbbrIndex.json');
 const httpAgent = axios.create({
@@ -162,12 +162,13 @@ class Ripper {
    * which belong in the set.
    *
    * @param {String} setUrl - the URL to the card set
-   * @param {Array} dataAcc - array accumulator which contains the list of card
-   *                          URLs. Used for recursive calls of this function
+   * @param {Array} dataAcc - object accumulator which contains a list of card
+   *                          URLs and cardImageUrls.
+   *                          Used for recursive calls of this function
    *                          during ripping of multi-page sets.
-   * @returns {Promise}     - A promise that returns an array if resolved
+   * @returns {Promise}     - A promise that returns an Array if resolved
    *                          or an error if rejected
-   * @resolve {Array}       - A list of card URLs contained in this set.
+   * @resolve {Array} setData - An array of objects which contain cardUrl and cardImageUrl
    * @rejects {Error}       - An error which states the cause
    */
   ripSetData (setUrl, dataAcc) {
@@ -180,7 +181,10 @@ class Ripper {
         if (typeof dataAcc === 'undefined') dataAcc = [];
         let cardA = $('td:nth-child(2) a');
         cardA.each((i, el) => {
-          dataAcc.push($(el).attr('href'));
+          dataAcc.push({
+            cardUrl: $(el).attr('href'),
+            cardImageUrl: $(el).attr('src')
+          })
         });
         // if there is a next page, get data from that page as well.
         let nextText = $('ul.pager > li:nth-last-child(2)').text();
@@ -202,47 +206,58 @@ class Ripper {
    * data and card image URL.
    *
    * @param {String} cardUrl - The URL to the card set
+   * @param {String} cardImageUrl - The URL to the card image
    * @returns {Promise}      - A promise that returns an array if resolved
    *                           or an error if rejected
    * @resolve {Object}       - An object containing card data such as title,
    *                           description, rarity, type, AP, DP, image URL, etc.
    * @rejects {Error}        - An error which states the cause
    */
-  ripCardData (cardUrl) {
-    return httpAgent
-      .request({ url: this.normalizeUrl(cardUrl) })
-      .then((res) => {
-        const $ = cheerio.load(res.data);
-        let data = {};
-
-        /** Data gathered from the card data table on the webpage */
-        data.number = $('.cardDetail > dl:nth-child(1) > dd:nth-child(2)').text();
-        data.rarity = $('.cardDetail > dl:nth-child(2) > dd:nth-child(2)').text();
-        data.setName = $('.cardDetail > dl:nth-child(3) > dd:nth-child(2)').text();
-        data.name = $('.cardDetail > dl:nth-child(4) > dd:nth-child(2)').text();
-        data.type = $('.cardDetail > dl:nth-child(5) > dd:nth-child(2)').text();
-        data.usageCost = $('.cardDetail > dl:nth-child(6) > dd:nth-child(2)').text();
-        data.outbreakCost = $('.cardDetail > dl:nth-child(7) > dd:nth-child(2)').text();
-        data.color = $('.cardDetail > dl:nth-child(8) > dd:nth-child(2)').text();
-        data.characteristic = $('.cardDetail > dl:nth-child(9) > dd:nth-child(2)').text();
-        data.ap = $('.cardDetail > dl:nth-child(10) > dd:nth-child(2)').text();
-        data.dp = $('.cardDetail > dl:nth-child(11) > dd:nth-child(2)').text();
-        data.parallel = $('.cardDetail > dl:nth-child(12) > dd:nth-child(2)').text();
-        data.text = $('.cardDetail > dl:nth-child(13) > dd:nth-child(2)').text();
-        data.flavor = $('.cardDetail > dl:nth-child(14) > dd:nth-child(2)').text();
-
-        /** Data that I think is good which isn't explicitly in the page */
-        data.image = $('.Images_card > img:nth-child(1)').attr('src');
-        data.image = `${rootUrl}${data.image}`;
-        data.url = this.normalizeUrl(cardUrl);
-        data.setAbbr = setAbbrRegex.exec(data.image)[1];
-        let { num, release, id } = this.parseCardId(data.image);
-        data.num = num;
-        data.release = release;
-        data.id = id;
-        console.log(data);
-        return data;
+  ripCardData (cardUrl, cardImageUrl) {
+    if (typeof cardImageUrl !== 'undefined') {
+      return this.isLocalCard(cardImageUrl).then((isLocal) => {
+        if (isLocal) {
+          throw new Error('EEXIST');
+        } else {
+          return this.ripCardData(cardUrl, undefined);
+        }
       })
+    } else {
+      return httpAgent
+        .request({ url: this.normalizeUrl(cardUrl) })
+        .then((res) => {
+          const $ = cheerio.load(res.data);
+          let data = {};
+
+          /** Data gathered from the card data table on the webpage */
+          data.number = $('.cardDetail > dl:nth-child(1) > dd:nth-child(2)').text();
+          data.rarity = $('.cardDetail > dl:nth-child(2) > dd:nth-child(2)').text();
+          data.setName = $('.cardDetail > dl:nth-child(3) > dd:nth-child(2)').text();
+          data.name = $('.cardDetail > dl:nth-child(4) > dd:nth-child(2)').text();
+          data.type = $('.cardDetail > dl:nth-child(5) > dd:nth-child(2)').text();
+          data.usageCost = $('.cardDetail > dl:nth-child(6) > dd:nth-child(2)').text();
+          data.outbreakCost = $('.cardDetail > dl:nth-child(7) > dd:nth-child(2)').text();
+          data.color = $('.cardDetail > dl:nth-child(8) > dd:nth-child(2)').text();
+          data.characteristic = $('.cardDetail > dl:nth-child(9) > dd:nth-child(2)').text();
+          data.ap = $('.cardDetail > dl:nth-child(10) > dd:nth-child(2)').text();
+          data.dp = $('.cardDetail > dl:nth-child(11) > dd:nth-child(2)').text();
+          data.parallel = $('.cardDetail > dl:nth-child(12) > dd:nth-child(2)').text();
+          data.text = $('.cardDetail > dl:nth-child(13) > dd:nth-child(2)').text();
+          data.flavor = $('.cardDetail > dl:nth-child(14) > dd:nth-child(2)').text();
+
+          /** Data that I think is good which isn't explicitly in the page */
+          data.image = $('.Images_card > img:nth-child(1)').attr('src');
+          data.image = `${rootUrl}${data.image}`;
+          data.url = this.normalizeUrl(cardUrl);
+          data.setAbbr = setAbbrRegex.exec(data.image)[1];
+          let { num, release, id } = this.parseCardId(data.image);
+          data.num = num;
+          data.release = release;
+          data.id = id;
+          console.log(`ripping ${data.id}`);
+          return data;
+      })
+    }
   }
 
   /**
@@ -350,14 +365,16 @@ class Ripper {
     return this.getSetUrls().then((setUrls) => {
       return Promise.mapSeries(setUrls, (setUrl) => {
         debug(`ripping set data ${setUrl}`);
-        return this.ripSetData(setUrl).then((cardUrls) => {
-          return Promise.mapSeries(cardUrls, (cardUrl) => {
-          debug(`ripping card data ${cardUrl}`);
-            return this.ripCardData(cardUrl).then((cardData) => {
-              return this.conditionallyDownload(cardData).then((writeResult) => {
+        return this.ripSetData(setUrl).then((cards) => {
+          return Promise.mapSeries(cards, (card) => {
+          debug(`ripping card data ${card.cardUrl}`);
+            return this.ripCardData(card.cardUrl, card.cardImageUrl).then((cardData) => {
+              return this.saveCardData(cardData).then((writeResult) => {
                 if (writeResult[0]) dataCounter++;
                 if (writeResult[1]) imageCounter++;
               })
+            }).catch((e) => {
+              console.log(`${card.cardUrl} already exists locally. skipping.`)
             })
           })
         })
@@ -372,7 +389,7 @@ class Ripper {
 
 
   /**
-   * conditionallyDownload
+   * saveCardData
    *
    * Download the card data and image file only if it doesn't already exist
    * locally.
@@ -384,10 +401,7 @@ class Ripper {
    *                             and this.writeCardData.
    * @rejects {Error}          - An error which states the cause
    */
-  async conditionallyDownload (cardData) {
-    let localDataExists = await this.isLocalData(cardData);
-    if (localDataExists)
-    return checkCardExistence(cardData).then((cardData))
+  async saveCardData (cardData) {
     let imageWriteP = this.downloadImage(cardData);
     let dataWriteP = this.writeCardData(cardData);
     return Promise.all([imageWriteP, dataWriteP]);
@@ -406,9 +420,8 @@ class Ripper {
    */
   isLocalData (cardData) {
     return new Promise((resolve, reject) => {
-      let { number, name, url, setAbbr, release } = cardData;
-      let cardDataPath = path.join(dataDir, setAbbr, release, num);
-      console.log(cardDataPath);
+      let { setAbbr, release, num } = cardData;
+      let cardDataPath = path.join(dataDir, setAbbr, release, `${setAbbr}_${release}-${num}.json`);
       let dataOnDisk;
       try {
         dataOnDisk = require(cardDataPath);
@@ -417,6 +430,23 @@ class Ripper {
         resolve(false);
       }
     });
+  }
+
+
+  /**
+   * isLocalCard
+   *
+   * Returns a promise of True or False depending on whether or not the
+   * card data exists on disk.
+   *
+   * @param {String} cardId
+   * @returns {Promise}
+   * @resolve {Boolean}
+   * @rejects {Error}
+   */
+  isLocalCard (cardId) {
+    let cardData = this.parseCardId(cardId);
+    return this.isLocalData(cardData);
   }
 
   /**
@@ -445,11 +475,14 @@ class Ripper {
       return this.ripSetData(url).then((cardUrls) => {
         return Promise.mapSeries(cardUrls, (cardUrl) => {
           console.log(`ripping card data ${cardUrl}`);
-          return this.ripCardData(cardUrl).then((cardData) => {
+          return this.ripCardData(card.cardUrl, card.cardImageUrl).then((cardData) => {
             let imageWriteP = this.downloadImage(cardData);
             let dataWriteP = this.writeCardData(cardData);
             return Promise.all([imageWriteP, dataWriteP]);
-          });
+          }).catch((e) => {
+            if (/EEXIST/.test(e)) return false;
+            throw e;
+          })
         });
       });
     } else {
@@ -671,6 +704,7 @@ class Ripper {
      *   * number
      *   * num
      *   * id
+     *   * variation
      *
      * @param {String} cardId
      * @returns {Promise} - A promise that returns an object if resolved
@@ -687,12 +721,14 @@ class Ripper {
       let number = r[2];
       let release = r[3];
       let num = r[4];
+      let variation = r[5];
       if (
         typeof number === 'undefined' ||
         typeof setAbbr === 'undefined' ||
         typeof number === 'undefined' ||
         typeof release === 'undefined' ||
-        typeof id === 'undefined'
+        typeof id === 'undefined' ||
+        typeof variation === 'undefined'
       )
       throw parseError
       return {
@@ -700,7 +736,8 @@ class Ripper {
         number,
         release,
         num,
-        id
+        id,
+        variation
       }
     }
 }

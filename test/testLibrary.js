@@ -12,6 +12,19 @@ beforeEach(function () {
 })
 
 describe('P-Memories Ripper Library', function() {
+  describe('isLocalData', function () {
+    it('should return a promise with true for a card that exists on disk', async function () {
+      let cardData = require('../fixtures/HMK_01-001.json');
+      let isLocalData = await ripper.isLocalData(cardData);
+      assert.isTrue(isLocalData);
+    });
+    it('should return a promise with false for a card that does not exist on disk', async function () {
+      let cardData = require('../fixtures/BBQ_OZ-541.json');
+      let isLocalData = await ripper.isLocalData(cardData);
+      assert.isFalse(isLocalData);
+    });
+  });
+
   describe('parseCardId', function () {
     it('should return an object with setAbbr, release, number, and num', function () {
       let p = ripper.parseCardId('HMK_01-001');
@@ -20,6 +33,17 @@ describe('P-Memories Ripper Library', function() {
       assert.equal(p.number, '01-001');
       assert.equal(p.num, '001');
       assert.equal(p.id, 'HMK_01-001');
+      assert.equal(p.variation, '');
+    });
+
+    it('should accept a relative image URL as param', function () {
+      let p = ripper.parseCardId('/images/product/YYY2/YYY2_02-001.jpg');
+      assert.equal(p.setAbbr, 'YYY2');
+      assert.equal(p.release, '02');
+      assert.equal(p.number, '02-001');
+      assert.equal(p.num, '001');
+      assert.equal(p.id, 'YYY2_02-001');
+      assert.equal(p.variation, '');
     });
 
     it('should accept an image URL as param', function () {
@@ -29,12 +53,22 @@ describe('P-Memories Ripper Library', function() {
       assert.equal(p.number, '01-001');
       assert.equal(p.num, '001');
       assert.equal(p.id, 'HMK_01-001');
+      assert.equal(p.variation, '');
     });
 
     it('should reject when the card ID is not valid', function () {
       assert.throws(ripper.parseCardId.bind(ripper, 'tacobell'), /not valid/);
     });
 
+    it('should handle a card ID with a letter variation at the end', function () {
+      let p = ripper.parseCardId('http://p-memories.com/images/product/GPFN/GPFN_01-030a.jpg');
+      assert.equal(p.setAbbr, 'GPFN');
+      assert.equal(p.release, '01');
+      assert.equal(p.number, '01-030a');
+      assert.equal(p.num, '030');
+      assert.equal(p.id, 'GPFN_01-030a');
+      assert.equal(p.variation, 'a');
+    })
   });
 
   describe('getSetUrls', function () {
@@ -64,17 +98,21 @@ describe('P-Memories Ripper Library', function() {
   });
 
   describe('ripSetData', function () {
-    it('should return a list of card URLs', function () {
+    it('should return an array of objects containing cardUrl and cardImageUrl', function () {
+      // @TODO this is an integration test and it doesn't belong with unit tests
       this.timeout(30000)
       return ripper.ripSetData('http://p-memories.com/card_product_list_page?field_title_nid=241831-ClariS&s_flg=on')
         .then((data) => {
           assert.isArray(data);
           assert.lengthOf(data, 1);
+          assert.isString(data[0].cardImageUrl);
+          assert.isString(data[0].cardUrl);
         })
     });
 
-    it('should rip a set which contains more than one page', function () {
-      this.timeout(30000)
+    xit('should rip a set which contains more than one page', function () {
+      // @TODO this is an integration test and it doesn't belong with unit tests
+      this.timeout(60000)
       return ripper.ripSetData('http://p-memories.com/card_product_list_page?field_title_nid=280695-%E5%88%9D%E9%9F%B3%E3%83%9F%E3%82%AF&s_flg=on')
         .then((data) => {
           assert.isArray(data);
@@ -82,7 +120,8 @@ describe('P-Memories Ripper Library', function() {
         })
     });
 
-    it('should cope with a relative p-memories.com URL', function () {
+    xit('should cope with a relative p-memories.com URL', function () {
+      // @TODO this is an integration test and it doesn't belong with unit tests
       this.timeout(30000)
       return ripper.ripSetData('/card_product_list_page?field_title_nid=241831-ClariS&s_flg=on')
         .then((data) => {
@@ -91,7 +130,7 @@ describe('P-Memories Ripper Library', function() {
         })
     });
 
-    it('should download madoka release 03', function () {
+    xit('should download madoka release 03', function () {
       this.timeout(30000);
       return ripper.ripSetData('http://p-memories.com/card_product_list_page?field_title_nid=313372-%E5%8A%87%E5%A0%B4%E7%89%88+%E9%AD%94%E6%B3%95%E5%B0%91%E5%A5%B3%E3%81%BE%E3%81%A9%E3%81%8B%E2%98%86%E3%83%9E%E3%82%AE%E3%82%AB&s_flg=on')
         .then((data) => {
@@ -100,6 +139,20 @@ describe('P-Memories Ripper Library', function() {
         })
     })
   });
+
+  describe('isLocalCard', function () {
+    it('should return a promise resolving true if the card exists on disk', function () {
+      return ripper.isLocalCard('HMK_01-001').then((realCardOnDisk) => {
+        assert.isTrue(realCardOnDisk);
+      })
+    })
+
+    it('should return a promise resolving false if the card does not exist on disk', function () {
+      return ripper.isLocalCard('TTQ_05-003').then((fakeCardNotOnDisk) => {
+        assert.isFalse(fakeCardNotOnDisk);
+      })
+    })
+  })
 
   describe('ripCardData', function () {
     this.timeout(30000);
@@ -129,6 +182,24 @@ describe('P-Memories Ripper Library', function() {
         assert.equal(data.num, '001');
         assert.equal(data.release, '01');
       })
+    });
+
+    it('should accept a second parameter, a cardImageUrl, which will be used to determine whether or not to make a network request to rip card data.', function () {
+      return ripper
+      .ripCardData('http://p-memories.com/node/932341', '/images/product/GPFN/GPFN_01-030a.jpg')
+      .then((data) => {
+        assert.isObject(data);
+        assert.equal(data.number, '01-030a');
+        assert.equal(data.url, 'http://p-memories.com/node/932341');
+        assert.equal(data.id, 'GPFN_01-030a');
+      })
+    });
+
+    it('should return a promise which rejects with an error if receiving a URL to a card which has already been downloaded', function () {
+      let targetCardPath = path.join(__dirname, '..', 'data', 'HMK', '01', 'HMK_01-001.json')
+      let creationTimeBefore = fs.statSync(targetCardPath).mtimeMs;
+      let cd = ripper.ripCardData('http://p-memories.com/node/383031', 'http://p-memories.com/images/product/HMK/HMK_01-001.jpg');
+      assert.isRejected(cd, /EEXIST/);
     });
 
     it('should cope with a relative P-memories URL', function () {
@@ -313,16 +384,16 @@ describe('P-Memories Ripper Library', function() {
     })
   })
 
-  describe('conditionallyDownload', function () {
-    it('Should not download in incremental mode if image exists locally.', function () {
+  describe('saveCardData', function () {
+    it('Should save json file and download card image.', function () {
       let cardData = require('../fixtures/HMK_01-001.json');
       let beforeStats = fs.statSync(path.join(__dirname, '..', 'data', 'HMK', '01', 'HMK_01-001.jpg'));
       return ripper
-        .conditionallyDownload(cardData)
-        .then((imagePath) => {
-          let afterStats = fs.statSync(imagePath);
-          console.log(`imagePath: ${imagePath} before:${beforeStats.mtimeMs} after: ${afterStats.mtimeMs}`)
-          assert.equal(afterStats.mtimeMs, beforeStats.mtimeMs);
+        .saveCardData(cardData)
+        .then((writeResult) => {
+          assert.isString(writeResult[1]);
+          let afterStats = fs.statSync(writeResult[1]);
+          assert.isAbove(afterStats.mtimeMs, beforeStats.mtimeMs);
         })
     });
   })
