@@ -27,7 +27,7 @@ const setPageRegex = /p-memories.com\/card_product_list_page.+field_title_nid/;
 const setAbbrRegex = /product\/(.+)\//;
 const imageNameRegex = /\/product\/.+\/(.+_.+-.+.jpg)/;
 const releaseNameRegex = /\/product\/.+\/.+_(.+)-.+.jpg/;
-const cardIdRegex = /([A-Za-z]+\d*)_((.+)-(\d+)([A-Za-z]*))/;
+const cardIdRegex = /([\w\d]+)_(([\w\d]+)-([\d]+)([\w\d]*))/;
 const dataDir = path.join(__dirname, '..', 'data');
 const setAbbrIndexPath = path.join(__dirname, '..', 'data', 'setAbbrIndex.json');
 const httpAgent = axios.create({
@@ -51,6 +51,8 @@ class Ripper {
     this.set = options.set || undefined;
     this.number = options.number || undefined;
     this.quiet = options.quiet || false;
+    this.dataCounter = 0;
+    this.imageCounter = 0;
   }
 
 
@@ -217,8 +219,10 @@ class Ripper {
     if (typeof cardImageUrl !== 'undefined') {
       return this.isLocalCard(cardImageUrl).then((isLocal) => {
         if (isLocal) {
+          console.log(`${cardImageUrl} is local.`);
           throw new Error('EEXIST');
         } else {
+          console.log(`${cardImageUrl} is NOT local.`);
           return this.ripCardData(cardUrl, undefined);
         }
       })
@@ -344,6 +348,20 @@ class Ripper {
 
 
   /**
+   * ripCardDataAndSave
+   */
+   ripCardDataAndSave (cardUrl, cardImageUrl) {
+     return this.ripCardData(cardUrl, cardImageUrl).then((cardData) => {
+       return this.saveCardData(cardData).then((writeResult) => {
+         if (writeResult[0]) this.dataCounter++;
+         if (writeResult[1]) this.imageCounter++;
+       })
+     }).catch((e) => {
+       console.log(`${cardImageUrl} already exists locally. skipping.`)
+     })
+   }
+
+  /**
    * ripAll
    *
    * accepts no parameters and downloads all card data and card images
@@ -360,7 +378,6 @@ class Ripper {
     // for each cardUrl, ripCardData. => cardData
     // for each cardData, writeCardData => jsonFilePath
     // for each cardData, downloadImage => imagePath
-    let dataCounter, imageCounter = 0;
     console.log('ripping all sets');
     return this.getSetUrls().then((setUrls) => {
       return Promise.mapSeries(setUrls, (setUrl) => {
@@ -368,23 +385,50 @@ class Ripper {
         return this.ripSetData(setUrl).then((cards) => {
           return Promise.mapSeries(cards, (card) => {
           debug(`ripping card data ${card.cardUrl}`);
-            return this.ripCardData(card.cardUrl, card.cardImageUrl).then((cardData) => {
-              return this.saveCardData(cardData).then((writeResult) => {
-                if (writeResult[0]) dataCounter++;
-                if (writeResult[1]) imageCounter++;
-              })
-            }).catch((e) => {
-              console.log(`${card.cardUrl} already exists locally. skipping.`)
-            })
+            return this.ripCardDataAndSave(card.cardUrl, card.cardImageUrl)
           })
         })
       })
     }).catch((e) => {
       console.error(e);
+      console.error('there was an error.');
     }).then(() => {
-      console.log(`done. card data: ${dataCounter}. images: ${imageCounter}`);
-      return (dataCounter);
+      console.log(`done. card data: ${this.dataCounter}. images: ${this.imageCounter}`);
+      return (this.dataCounter);
     })
+  }
+
+
+  /**
+   * ripUrl
+   *
+   * Rip a resource. Used by the CLI.
+   * url could be one of several resources.
+   *
+   *   * Card URL  (defers to ripCardData)
+   *   * Set URL   (defers to ripSetData)
+   *   * undefined (defers to ripAll)
+   *
+   * @param {String} url       - The URL to rip
+   * @returns {Promise}        - A promise that returns a number if resolved
+   *                             or an error if rejected
+   * @resolve {Number}         - The number of card data ripped
+   * @rejects {Error}          - An error which states the cause
+   */
+  ripUrl (url) {
+    let urlType = this.identifyUrl(url);
+    if (urlType === 'card') {
+      return this.ripCardData(url);
+    } else if (urlType === 'set') {
+      return this.ripSetData(url).then((cards) => {
+        return Promise.mapSeries(cards, (card) => {
+          console.log(`ripping card data ${card.cardUrl} and image ${card.cardImageUrl}`);
+          return this.ripCardDataAndSave(card.cardUrl, card.cardImageUrl);
+        });
+      });
+    } else {
+      return ripAll();
+    }
   }
 
 
@@ -449,46 +493,7 @@ class Ripper {
     return this.isLocalData(cardData);
   }
 
-  /**
-   * ripUrl
-   *
-   * Rip a resource. Used by the CLI.
-   * url could be one of several resources.
-   *
-   *   * Card URL  (defers to ripCardData)
-   *   * Set URL   (defers to ripSetData)
-   *   * undefined (defers to ripAll)
-   *
-   * @param {String} url       - The URL to rip
-   * @param {Boolean} incremental - If true, data and images are downloaded
-   *                                only if they do not already exist on disk.
-   * @returns {Promise}        - A promise that returns a number if resolved
-   *                             or an error if rejected
-   * @resolve {Number}         - The number of card data ripped
-   * @rejects {Error}          - An error which states the cause
-   */
-  ripUrl (url, incremental) {
-    let urlType = this.identifyUrl(url);
-    if (urlType === 'card') {
-      return this.ripCardData(url);
-    } else if (urlType === 'set') {
-      return this.ripSetData(url).then((cardUrls) => {
-        return Promise.mapSeries(cardUrls, (cardUrl) => {
-          console.log(`ripping card data ${cardUrl}`);
-          return this.ripCardData(card.cardUrl, card.cardImageUrl).then((cardData) => {
-            let imageWriteP = this.downloadImage(cardData);
-            let dataWriteP = this.writeCardData(cardData);
-            return Promise.all([imageWriteP, dataWriteP]);
-          }).catch((e) => {
-            if (/EEXIST/.test(e)) return false;
-            throw e;
-          })
-        });
-      });
-    } else {
-      return ripAll();
-    }
-  }
+
 
   /**
    * identifyUrl

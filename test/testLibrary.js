@@ -60,6 +60,16 @@ describe('P-Memories Ripper Library', function() {
       assert.throws(ripper.parseCardId.bind(ripper, 'tacobell'), /not valid/);
     });
 
+    it('should handle a card ID with a letter as the release', function () {
+      let p = ripper.parseCardId('SSSS_P-001');
+      assert.equal(p.setAbbr, 'SSSS');
+      assert.equal(p.release, 'P');
+      assert.equal(p.number, 'P-001');
+      assert.equal(p.num, '001');
+      assert.equal(p.id, 'SSSS_P-001');
+      assert.equal(p.variation, '');
+    });
+
     it('should handle a card ID with a letter variation at the end', function () {
       let p = ripper.parseCardId('http://p-memories.com/images/product/GPFN/GPFN_01-030a.jpg');
       assert.equal(p.setAbbr, 'GPFN');
@@ -68,6 +78,26 @@ describe('P-Memories Ripper Library', function() {
       assert.equal(p.num, '030');
       assert.equal(p.id, 'GPFN_01-030a');
       assert.equal(p.variation, 'a');
+    })
+
+    it('should handle a card ID an underscore in the setAbbr', function () {
+      let p = ripper.parseCardId('PM_HS_03-008');
+      assert.equal(p.setAbbr, 'PM_HS');
+      assert.equal(p.release, '03');
+      assert.equal(p.number, '03-008');
+      assert.equal(p.num, '008');
+      assert.equal(p.id, 'PM_HS_03-008');
+      assert.equal(p.variation, '');
+    });
+
+    it('should handle a cardID with underscores and a relative URL', function () {
+      let p = ripper.parseCardId('/images/product/PM_HS/PM_HS_01-002.jpg');
+      assert.equal(p.setAbbr, 'PM_HS')
+      assert.equal(p.release, '01')
+      assert.equal(p.number, '01-002')
+      assert.equal(p.num, '002')
+      assert.equal(p.id, 'PM_HS_01-002')
+      assert.equal(p.variation, '')
     })
   });
 
@@ -145,13 +175,25 @@ describe('P-Memories Ripper Library', function() {
       return ripper.isLocalCard('HMK_01-001').then((realCardOnDisk) => {
         assert.isTrue(realCardOnDisk);
       })
-    })
+    });
 
     it('should return a promise resolving false if the card does not exist on disk', function () {
       return ripper.isLocalCard('TTQ_05-003').then((fakeCardNotOnDisk) => {
         assert.isFalse(fakeCardNotOnDisk);
       })
-    })
+    });
+
+    it('should handle relative image urls as parameter', function () {
+      return ripper.isLocalCard('/images/product/PM_HS/PM_HS_01-002.jpg').then((realCardOnDisk) => {
+        assert.isTrue(realCardOnDisk);
+      });
+    });
+
+    it('should handle absolute image urls as parameter', function () {
+      return ripper.isLocalCard('http://p-memories.com/images/product/HMK/HMK_01-001.jpg').then((realCardOnDisk) => {
+        assert.isTrue(realCardOnDisk);
+      });
+    });
   })
 
   describe('ripCardData', function () {
