@@ -12,6 +12,43 @@ beforeEach(function () {
 })
 
 describe('P-Memories Ripper Library', function() {
+  describe('getCardUrlsFromSetPage', function () {
+    this.timeout(30000);
+    it('should accept a card number and setUrl and resolve an object with cardUrl and cardImageUrl', function () {
+      return ripper.getCardUrlsFromSetPage('01-050', 'http://p-memories.com/card_product_list_page?field_title_nid=919863-SSSS.GRIDMAN&s_flg=on').then((card) => {
+        assert.isObject(card);
+        assert.equal(card.cardUrl, 'http://p-memories.com/node/926840');
+        assert.equal(card.cardImageUrl, 'http://p-memories.com/images/product/SSSS/SSSS_01-050.jpg');
+      })
+    })
+  })
+
+  describe('lookupCardUrl', function () {
+    this.timeout(30000);
+    it('should resolve { cardUrl, cardImageUrl } when given a card ID', function () {
+      return ripper.lookupCardUrl('SSSS_01-001').then((card) => {
+        assert.isObject(card);
+        assert.equal(card.cardUrl, 'http://p-memories.com/node/926791');
+        assert.equal(card.cardImageUrl, 'http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg');
+      })
+    })
+  });
+
+  describe('isValidPMemoriesUrl', function () {
+    it('should return true when receiving p-memories.com url as param', function () {
+      let valid = ripper.isValidPMemoriesUrl('http://p-memories.com/node/926791');
+      assert.isTrue(valid);
+    });
+    it('should return false when receiving a foreign url as param', function () {
+      let invalid = ripper.isValidPMemoriesUrl('http://google.com');
+      assert.isFalse(invalid);
+    });
+    it('should return false when receiving a card ID', function () {
+      let invalid = ripper.isValidPMemoriesUrl('SSSS_01-001')
+      assert.isFalse(invalid);
+    })
+  });
+
   describe('isLocalData', function () {
     it('should return a promise with true for a card that exists on disk', async function () {
       let cardData = require('../fixtures/HMK_01-001.json');
@@ -121,6 +158,16 @@ http://p-memories.com/images/product/HMK/HMK_01-001.jpg
       assert.equal(p.id, 'PM_K-ON_Part2_02-048')
       assert.equal(p.variation, '')
     });
+
+    it('should handle GPFN_P-004a', function () {
+      let p = ripper.parseCardId('GPFN_P-004a');
+      assert.equal(p.setAbbr, 'GPFN')
+      assert.equal(p.release, 'P')
+      assert.equal(p.number, 'P-004a')
+      assert.equal(p.num, '004')
+      assert.equal(p.id, 'GPFN_P-004a')
+      assert.equal(p.variation, 'a')
+    });
   });
 
   describe('getSetUrls', function () {
@@ -218,6 +265,17 @@ http://p-memories.com/images/product/HMK/HMK_01-001.jpg
     });
   })
 
+  describe('ripCardById', function () {
+    this.timeout(30000);
+    it('should accept a card ID as param and rip the card to disk', function () {
+      return ripper.ripCardById('ERMG_01-001').then((writeResult) => {
+        assert.isObject(writeResult);
+        assert.isStirng(writeResult.imagePath);
+        assert.isStirng(writeResult.dataPath);
+      })
+    })
+  })
+
   describe('ripCardData', function () {
     this.timeout(30000);
     it('Should get card data from a card URL', function () {
@@ -248,6 +306,15 @@ http://p-memories.com/images/product/HMK/HMK_01-001.jpg
       })
     });
 
+    it('should accept a card ID as first param', function () {
+      return ripper.ripCardData('MZK_01-001').then((data) => {
+        assert.isObject(data);
+        assert.equal(data.number, '01-001');
+        assert.equal(data.url, 'http://p-memories.com/node/942168');
+        assert.equal(data.image, 'http://p-memories.com/images/product/MZK/MZK_01-001.jpg');
+      })
+    });
+
     it('should accept a second parameter, a cardImageUrl, which will be used to determine whether or not to make a network request to rip card data.', function () {
       return ripper
       .ripCardData('http://p-memories.com/node/932341', '/images/product/GPFN/GPFN_01-030a.jpg')
@@ -263,7 +330,7 @@ http://p-memories.com/images/product/HMK/HMK_01-001.jpg
       let targetCardPath = path.join(__dirname, '..', 'data', 'HMK', '01', 'HMK_01-001.json')
       let creationTimeBefore = fs.statSync(targetCardPath).mtimeMs;
       let cd = ripper.ripCardData('http://p-memories.com/node/383031', 'http://p-memories.com/images/product/HMK/HMK_01-001.jpg');
-      assert.isRejected(cd, /EEXIST/);
+      return assert.isRejected(cd, /EEXIST/);
     });
 
     it('should cope with a relative P-memories URL', function () {
@@ -274,6 +341,7 @@ http://p-memories.com/images/product/HMK/HMK_01-001.jpg
           assert.equal(data.url, 'http://p-memories.com/node/926791');
         })
     });
+
   });
 
   describe('writeCardData', function () {

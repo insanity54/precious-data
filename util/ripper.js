@@ -22,6 +22,8 @@ const path = require('path');
 const { version } = require('./misc');
 const customHeaders = { 'User-Agent': `precious-data/${version}`, 'Cache-Control': 'no-cache' };
 const rootUrl = 'http://p-memories.com';
+const urlRegex = /(?:http(?:s?):\/\/)?p-memories\.com/;
+const relativeUrlRegex = /\/node\/\d+/;
 const cardPageRegex = /p-memories.com\/node\/\d+/;
 const setPageRegex = /p-memories.com\/card_product_list_page.+field_title_nid/;
 const setAbbrRegex = /product\/(.+)\//;
@@ -44,15 +46,24 @@ class Ripper {
    */
   constructor(options) {
     if (typeof options === 'undefined') options = {};
-    this.incremental = options.incremental;
+    this.incremental = options.incremental || false;
     this.url = options.url || undefined;
     this.throttle = options.throttle || 5;
-    this.all = options.all || true;
+    this.all = options.all || false;
     this.set = options.set || undefined;
     this.number = options.number || undefined;
     this.quiet = options.quiet || false;
     this.dataCounter = 0;
     this.imageCounter = 0;
+
+    debug(`--- Ripper Class Construction ---`);
+    debug(`incremental: ${this.incremental}`);
+    debug(`url: ${this.url}`);
+    debug(`throttle: ${this.throttle}`);
+    debug(`all: ${this.all}`);
+    debug(`set: ${this.set}`);
+    debug(`number: ${this.number}`);
+    debug(`quiet: ${this.quiet}`);
   }
 
 
@@ -202,6 +213,23 @@ class Ripper {
   }
 
   /**
+   * isValidPMemoriesUrl
+   *
+   * Returns true or false depending on whether or not a valid P-memories.com
+   * URL was passed as parameter.
+   *
+   * @param {String} url
+   * @returns {Boolean} isValid - true if the url was p-memories.com url, false otherwise.
+   */
+   isValidPMemoriesUrl (input) {
+     if (urlRegex.test(input) || relativeUrlRegex.test(input)) {
+       return true;
+     } else {
+       return false;
+     }
+   }
+
+  /**
    * ripCardData
    *
    * accepts a card URL as it's parameter and returns an object containing card
@@ -216,7 +244,12 @@ class Ripper {
    * @rejects {Error}        - An error which states the cause
    */
   ripCardData (cardUrl, cardImageUrl) {
-    if (this.incremental && typeof cardImageUrl !== 'undefined') {
+    if (!this.isValidPMemoriesUrl(cardUrl)) {
+      // we must have received a cardId
+      return this.lookupCardUrl(cardUrl).then((card) => {
+        return this.ripCardData(card.cardUrl, card.cardImageUrl);
+      });
+    } else if (this.incremental && typeof cardImageUrl !== 'undefined') {
       return this.isLocalCard(cardImageUrl).then((isLocal) => {
         if (isLocal) {
           console.log(`${cardImageUrl} is local.`);
@@ -252,6 +285,7 @@ class Ripper {
           /** Data that I think is good which isn't explicitly in the page */
           data.image = $('.Images_card > img:nth-child(1)').attr('src');
           data.image = `${rootUrl}${data.image}`;
+          console.log(data.image);
           data.url = this.normalizeUrl(cardUrl);
           data.setAbbr = setAbbrRegex.exec(data.image)[1];
           let { num, release, id } = this.parseCardId(data.image);
@@ -262,6 +296,48 @@ class Ripper {
           return data;
       })
     }
+  }
+
+  /**
+   * lookupCardUrl
+   *
+   * Accepts a card ID as parameter, and resolves the appropriate cardUrl and
+   * cardImageUrl belonging to that card.
+   *
+   * @param {String} cardId
+   * @returns {Promise}       - A promise that returns an object if resolved
+   *                            or an error if rejected
+   * @resolve {Object} card
+   * @resolve {String} card.cardUrl       - the url to the card page.
+   *                                        Example: http://p-memories.com/node/926791
+   * @resolve {String} card.cardImageUrl  - the image url of the card.
+   *                                        Example: http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg
+   */
+  lookupCardUrl (cardId) {
+    let { setAbbr, number } = this.parseCardId(cardId);
+    if (typeof setAbbr === 'undefined') throw new Error(`setAbbr could not be derived from ${cardId}`);
+    return this.getSetUrlFromSetAbbr(setAbbr).then((setUrl) => {
+      return this.getCardUrlsFromSetPage(number, setUrl);
+    })
+  }
+
+  /**
+   * getCardUrlsFromSetPage
+   *
+   * Accepts a cardNumber and setUrl as parameters, and returns
+   * an object with cardUrl, and cardImageUrl.
+   */
+  getCardUrlsFromSetPage (cardNumber, setUrl) {
+    return this.ripSetData(setUrl).then((cardList) => {
+      let matchingCards = cardList.filter((c) => {
+        let p = this.parseCardId(c.cardImageUrl);
+        return (p.number === cardNumber)
+      })
+      return {
+        cardUrl: this.normalizeUrl(matchingCards[0].cardUrl),
+        cardImageUrl: this.normalizeUrl(matchingCards[0].cardImageUrl)
+      }
+    })
   }
 
   /**
@@ -530,13 +606,12 @@ class Ripper {
    * Determines the correct method to use to rip card data based on input.
    * Defers to more specific functions for data rippage.
    *
-   * @param {Object} options   - The URL to identify
    * @returns {Promise}        - A promise that returns a string if resolved
    *                             or an error if rejected
    * @resolve {String}         - A report of ripped card data
    * @rejects {Error}          - An error which states the cause
    */
-  rip (options) {
+  rip () {
     // throttle the upcoming requests based on the option received
     throttleRequests(httpAgent, (1000 * this.throttle));
 
@@ -558,12 +633,18 @@ class Ripper {
       console.log('Ripping all.');
       return this.ripAll();
     }
+    else if (this.number) {
+      console.log(`ripping ${this.number}`)
+      return this.ripCardDataAndSave(this.number);
+    }
     else {
       console.error('Rip parameters are indeterminate');
       return Promise.reject('Rip parameters are indeterminate');
     }
 
   }
+
+
 
   /**
    * getSetUrlFromSetAbbr
@@ -573,8 +654,11 @@ class Ripper {
    *
    * @param {String} setAbbr       - The set abbreviation
    * @param {Number} attemptNumber - the number of times getSetUrlFromSetAbbr has
-   *                                 tried. Used to limit recursive calls
-   * @returns {String}             - A p-memories.com card set URL
+
+   * @returns {Promise}        - A promise that returns a string if resolved
+   *                             or an error if rejected
+   * @resolve {String}         - A p-memories.com card set URL
+   * @rejects {Error}          - An error which states the cause
    */
   getSetUrlFromSetAbbr (setAbbr, attemptNumber) {
     // 0) check database of mappings from card abbreviations to card set URLs
