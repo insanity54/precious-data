@@ -62,4 +62,4 @@ Show commandline usage and help
 
 ## Code Repository
 
-https://github.com/insanity54/precious-data/
+[https://github.com/insanity54/precious-data/](https://github.com/insanity54/precious-data/}
