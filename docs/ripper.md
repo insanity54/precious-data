@@ -1,105 +1,38 @@
-## Functions
+<a name="Ripper"></a>
 
-<dl>
-<dt><a href="#buildImagePath">buildImagePath(imageUrl)</a> ⇒ <code>Promise</code></dt>
-<dd><p>buildImagePath</p>
-<p>Accepts an image URL as it&#39;s parameter and returns
-a string of the perfect path on disk where the image should be saved.
-The perfect path includes set abbreviation (ex: HMK,)
-release number (ex: 01) and image name. (ex: HMK_01-001.json.)</p>
-</dd>
-<dt><a href="#buildCardDataPath">buildCardDataPath(cardUrl)</a> ⇒ <code>Promise</code></dt>
-<dd><p>buildCardDataPath</p>
-<p>Accepts a card URL as it&#39;s parameter and returns a string of the
-perfect path on disk where the card data JSON should be saved.
-The perfect path includes set abbreviation (ex: HMK,)
-release number (ex: 01) and image name. (ex: HMK_01-001.json.)</p>
-</dd>
-<dt><a href="#downloadImage">downloadImage(targetUrl)</a> ⇒ <code>Promise</code></dt>
-<dd><p>downloadImage</p>
-<p>Accepts a card image URL OR card URL as it&#39;s parameter and returns
-a string of the path on disk where the image was saved.</p>
-</dd>
-<dt><a href="#ripSetData">ripSetData(setUrl, dataAcc)</a> ⇒ <code>Promise</code></dt>
-<dd><p>ripSetData</p>
-<p>Accepts a set URL as parameter and returns a list of card URLs
-which belong in the set.</p>
-</dd>
-<dt><a href="#ripCardData">ripCardData(cardUrl)</a> ⇒ <code>Promise</code></dt>
-<dd><p>ripCardData</p>
-<p>accepts a card URL as it&#39;s parameter and returns an object containing card
-data and card image URL.</p>
-</dd>
-<dt><a href="#writeCardData">writeCardData(cardData)</a> ⇒ <code>Promise</code></dt>
-<dd><p>writeCardData</p>
-<p>Accepts an object containing card data, and creates a JSON string
-which is written to the appropriate location on disk.
-To prevent the ripper from destroying local english translations,
-writes merge JSON data files rather than blindly overwriting.</p>
-</dd>
-<dt><a href="#getSetUrls">getSetUrls()</a> ⇒ <code>Promise</code></dt>
-<dd><p>getSetUrls</p>
-<p>accepts no parameters and returns a list of all set URLs found on p-memories
-website.</p>
-</dd>
-<dt><a href="#ripAll">ripAll()</a> ⇒ <code>Promise</code></dt>
-<dd><p>ripAll</p>
-<p>accepts no parameters and downloads all card data and card images
-found p-memories.com.</p>
-</dd>
-<dt><a href="#ripUrl">ripUrl(url, throttle, incremental)</a> ⇒ <code>Promise</code></dt>
-<dd><p>ripUrl</p>
-<p>Rip a resource. Used by the CLI.
-url could be one of several resources.</p>
-<ul>
-<li>Card URL  (defers to ripCardData)</li>
-<li>Set URL   (defers to ripSetData)</li>
-<li>undefined (defers to ripAll)</li>
-</ul>
-</dd>
-<dt><a href="#identifyUrl">identifyUrl(url)</a> ⇒ <code>String</code></dt>
-<dd><p>identifyUrl</p>
-<p>Identify the type of URL the user is sending us. Can be either:</p>
-<ul>
-<li>card URL</li>
-<li>Set URL</li>
-<li>undefined</li>
-</ul>
-</dd>
-<dt><a href="#rip">rip(options)</a> ⇒ <code>Promise</code></dt>
-<dd><p>rip</p>
-<p>Rip card data</p>
-<p>Determines the correct method to use to rip card data based on input.
-Defers to more specific functions for data rippage.</p>
-</dd>
-<dt><a href="#getSetUrlFromSetAbbr">getSetUrlFromSetAbbr(setAbbr, attemptNumber)</a> ⇒ <code>String</code></dt>
-<dd><p>getSetUrlFromSetAbbr</p>
-<p>taking a set abbreviation as it&#39;s sole parameter, return a setURL
-of the card set.</p>
-</dd>
-<dt><a href="#getImageUrlFromEachSet">getImageUrlFromEachSet()</a> ⇒ <code>Array</code></dt>
-<dd><p>getImageUrlFromEachSet</p>
-<p>taking a set abbreviation as it&#39;s sole parameter, return a setURL
-of the card set.</p>
-</dd>
-<dt><a href="#createSetAbbreviationIndex">createSetAbbreviationIndex()</a> ⇒ <code>Array</code></dt>
-<dd><p>createSetAbbreviationIndex</p>
-<p>Create a mapping of set abbreviations to set urls.
-This map is used to get set URLs from a set Abbreviation.</p>
-</dd>
-<dt><a href="#getSetAbbrFromImageUrl">getSetAbbrFromImageUrl(imageUrl)</a> ⇒ <code>String</code></dt>
-<dd><p>getSetAbbrFromImageUrl</p>
-<p>Determines the set abbreviation given a card image URL.</p>
-</dd>
-<dt><a href="#getFirstCardImageUrl">getFirstCardImageUrl(setUrl)</a> ⇒ <code>Promise</code></dt>
-<dd><p>getFirstCardImageUrl</p>
-<p>Accepts a set URL as parameter and returns the URL of the first card in that set.</p>
-</dd>
-</dl>
+## Ripper
+**Kind**: global class  
 
-<a name="buildImagePath"></a>
+* [Ripper](#Ripper)
+    * [.buildImagePath(imageUrl)](#Ripper+buildImagePath) ⇒ <code>Promise</code>
+    * [.buildCardDataPath(cardUrl)](#Ripper+buildCardDataPath) ⇒ <code>Promise</code>
+    * [.downloadImage(targetUrl)](#Ripper+downloadImage) ⇒ <code>Promise</code>
+    * [.ripSetData(setUrl, dataAcc)](#Ripper+ripSetData) ⇒ <code>Promise</code>
+    * [.isValidPMemoriesUrl(url)](#Ripper+isValidPMemoriesUrl) ⇒ <code>Boolean</code>
+    * [.ripCardData(cardUrl, cardImageUrl)](#Ripper+ripCardData) ⇒ <code>Promise</code>
+    * [.lookupCardUrl(cardId)](#Ripper+lookupCardUrl) ⇒ <code>Promise</code>
+    * [.getCardUrlsFromSetPage()](#Ripper+getCardUrlsFromSetPage)
+    * [.writeCardData(cardData)](#Ripper+writeCardData) ⇒ <code>Promise</code>
+    * [.readCardData(cardId)](#Ripper+readCardData) ⇒ <code>Promise</code>
+    * [.getSetUrls()](#Ripper+getSetUrls) ⇒ <code>Promise</code>
+    * [.ripCardDataAndSave()](#Ripper+ripCardDataAndSave)
+    * [.ripAll()](#Ripper+ripAll) ⇒ <code>Promise</code>
+    * [.ripUrl(url)](#Ripper+ripUrl) ⇒ <code>Promise</code>
+    * [.saveCardData(cardData)](#Ripper+saveCardData) ⇒ <code>Promise</code>
+    * [.isLocalData(cardData)](#Ripper+isLocalData) ⇒ <code>Promise</code>
+    * [.isLocalCard(cardId)](#Ripper+isLocalCard) ⇒ <code>Promise</code>
+    * [.identifyUrl(url)](#Ripper+identifyUrl) ⇒ <code>String</code>
+    * [.rip()](#Ripper+rip) ⇒ <code>Promise</code>
+    * [.getSetUrlFromSetAbbr(setAbbr, attemptNumber)](#Ripper+getSetUrlFromSetAbbr) ⇒ <code>Promise</code>
+    * [.getImageUrlFromEachSet()](#Ripper+getImageUrlFromEachSet) ⇒ <code>Array</code>
+    * [.createSetAbbreviationIndex()](#Ripper+createSetAbbreviationIndex) ⇒ <code>Array</code>
+    * [.getSetAbbrFromImageUrl(imageUrl)](#Ripper+getSetAbbrFromImageUrl) ⇒ <code>String</code>
+    * [.getFirstCardImageUrl(setUrl)](#Ripper+getFirstCardImageUrl) ⇒ <code>Promise</code>
+    * [.parseCardId(cardId)](#Ripper+parseCardId) ⇒ <code>Promise</code>
 
-## buildImagePath(imageUrl) ⇒ <code>Promise</code>
+<a name="Ripper+buildImagePath"></a>
+
+### ripper.buildImagePath(imageUrl) ⇒ <code>Promise</code>
 buildImagePath
 
 Accepts an image URL as it's parameter and returns
@@ -107,7 +40,7 @@ a string of the perfect path on disk where the image should be saved.
 The perfect path includes set abbreviation (ex: HMK,)
 release number (ex: 01) and image name. (ex: HMK_01-001.json.)
 
-**Kind**: global function  
+**Kind**: instance method of [<code>Ripper</code>](#Ripper)  
 **Returns**: <code>Promise</code> - - A promise that returns an array if resolved
                            or an error if rejected.  
 **Resolve**: <code>String</code>        - An absolute path on disk.  
@@ -122,9 +55,9 @@ release number (ex: 01) and image name. (ex: HMK_01-001.json.)
 buildImagePath('http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg')
   => "@/data/SSSS/01/SSSS_01-001.jpg" (where @ is this project root.)
 ```
-<a name="buildCardDataPath"></a>
+<a name="Ripper+buildCardDataPath"></a>
 
-## buildCardDataPath(cardUrl) ⇒ <code>Promise</code>
+### ripper.buildCardDataPath(cardUrl) ⇒ <code>Promise</code>
 buildCardDataPath
 
 Accepts a card URL as it's parameter and returns a string of the
@@ -132,7 +65,7 @@ perfect path on disk where the card data JSON should be saved.
 The perfect path includes set abbreviation (ex: HMK,)
 release number (ex: 01) and image name. (ex: HMK_01-001.json.)
 
-**Kind**: global function  
+**Kind**: instance method of [<code>Ripper</code>](#Ripper)  
 **Returns**: <code>Promise</code> - - A promise that returns a string if resolved
                            or an error if rejected.  
 **Resolve**: <code>String</code>        - An absolute path on disk.  
@@ -147,15 +80,15 @@ release number (ex: 01) and image name. (ex: HMK_01-001.json.)
 buildCardDataPath({"set": "HMK", "number": "01-001", ... })
          => "@/data/HMK/01/HMK_01-001.json" (where @ is project root)
 ```
-<a name="downloadImage"></a>
+<a name="Ripper+downloadImage"></a>
 
-## downloadImage(targetUrl) ⇒ <code>Promise</code>
+### ripper.downloadImage(targetUrl) ⇒ <code>Promise</code>
 downloadImage
 
 Accepts a card image URL OR card URL as it's parameter and returns
 a string of the path on disk where the image was saved.
 
-**Kind**: global function  
+**Kind**: instance method of [<code>Ripper</code>](#Ripper)  
 **Returns**: <code>Promise</code> - - A promise that returns an array if resolved
                            or an error if rejected.  
 **Resolve**: <code>String</code>        - A string which tells where the image was saved.  
@@ -165,34 +98,49 @@ a string of the path on disk where the image was saved.
 | --- | --- | --- |
 | targetUrl | <code>String</code> | the URL to the image or card page |
 
-<a name="ripSetData"></a>
+<a name="Ripper+ripSetData"></a>
 
-## ripSetData(setUrl, dataAcc) ⇒ <code>Promise</code>
+### ripper.ripSetData(setUrl, dataAcc) ⇒ <code>Promise</code>
 ripSetData
 
 Accepts a set URL as parameter and returns a list of card URLs
 which belong in the set.
 
-**Kind**: global function  
-**Returns**: <code>Promise</code> - - A promise that returns an array if resolved
+**Kind**: instance method of [<code>Ripper</code>](#Ripper)  
+**Returns**: <code>Promise</code> - - A promise that returns an Array if resolved
                          or an error if rejected  
-**Resolve**: <code>Array</code>       - A list of card URLs contained in this set.  
+**Resolve**: <code>Array</code> setData - An array of objects which contain cardUrl and cardImageUrl  
 **Rejects**: <code>Error</code>       - An error which states the cause  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | setUrl | <code>String</code> | the URL to the card set |
-| dataAcc | <code>Array</code> | array accumulator which contains the list of card                          URLs. Used for recursive calls of this function                          during ripping of multi-page sets. |
+| dataAcc | <code>Array</code> | object accumulator which contains a list of card                          URLs and cardImageUrls.                          Used for recursive calls of this function                          during ripping of multi-page sets. |
 
-<a name="ripCardData"></a>
+<a name="Ripper+isValidPMemoriesUrl"></a>
 
-## ripCardData(cardUrl) ⇒ <code>Promise</code>
+### ripper.isValidPMemoriesUrl(url) ⇒ <code>Boolean</code>
+isValidPMemoriesUrl
+
+Returns true or false depending on whether or not a valid P-memories.com
+URL was passed as parameter.
+
+**Kind**: instance method of [<code>Ripper</code>](#Ripper)  
+**Returns**: <code>Boolean</code> - isValid - true if the url was p-memories.com url, false otherwise.  
+
+| Param | Type |
+| --- | --- |
+| url | <code>String</code> | 
+
+<a name="Ripper+ripCardData"></a>
+
+### ripper.ripCardData(cardUrl, cardImageUrl) ⇒ <code>Promise</code>
 ripCardData
 
 accepts a card URL as it's parameter and returns an object containing card
 data and card image URL.
 
-**Kind**: global function  
+**Kind**: instance method of [<code>Ripper</code>](#Ripper)  
 **Returns**: <code>Promise</code> - - A promise that returns an array if resolved
                           or an error if rejected  
 **Resolve**: <code>Object</code>       - An object containing card data such as title,
@@ -202,10 +150,41 @@ data and card image URL.
 | Param | Type | Description |
 | --- | --- | --- |
 | cardUrl | <code>String</code> | The URL to the card set |
+| cardImageUrl | <code>String</code> | The URL to the card image |
 
-<a name="writeCardData"></a>
+<a name="Ripper+lookupCardUrl"></a>
 
-## writeCardData(cardData) ⇒ <code>Promise</code>
+### ripper.lookupCardUrl(cardId) ⇒ <code>Promise</code>
+lookupCardUrl
+
+Accepts a card ID as parameter, and resolves the appropriate cardUrl and
+cardImageUrl belonging to that card.
+
+**Kind**: instance method of [<code>Ripper</code>](#Ripper)  
+**Returns**: <code>Promise</code> - - A promise that returns an object if resolved
+                           or an error if rejected  
+**Resolve**: <code>Object</code> card  
+**Resolve**: <code>String</code> card.cardUrl       - the url to the card page.
+                                       Example: http://p-memories.com/node/926791  
+**Resolve**: <code>String</code> card.cardImageUrl  - the image url of the card.
+                                       Example: http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg  
+
+| Param | Type |
+| --- | --- |
+| cardId | <code>String</code> | 
+
+<a name="Ripper+getCardUrlsFromSetPage"></a>
+
+### ripper.getCardUrlsFromSetPage()
+getCardUrlsFromSetPage
+
+Accepts a cardNumber and setUrl as parameters, and returns
+an object with cardUrl, and cardImageUrl.
+
+**Kind**: instance method of [<code>Ripper</code>](#Ripper)  
+<a name="Ripper+writeCardData"></a>
+
+### ripper.writeCardData(cardData) ⇒ <code>Promise</code>
 writeCardData
 
 Accepts an object containing card data, and creates a JSON string
@@ -213,7 +192,7 @@ which is written to the appropriate location on disk.
 To prevent the ripper from destroying local english translations,
 writes merge JSON data files rather than blindly overwriting.
 
-**Kind**: global function  
+**Kind**: instance method of [<code>Ripper</code>](#Ripper)  
 **Returns**: <code>Promise</code> - - A promise that returns an array if resolved
                            or an error if rejected  
 **Resolve**: <code>String</code>        - The abs location on disk where the JSON was saved.  
@@ -223,35 +202,62 @@ writes merge JSON data files rather than blindly overwriting.
 | --- | --- | --- |
 | cardData | <code>Object</code> | the card data |
 
-<a name="getSetUrls"></a>
+<a name="Ripper+readCardData"></a>
 
-## getSetUrls() ⇒ <code>Promise</code>
+### ripper.readCardData(cardId) ⇒ <code>Promise</code>
+readCardData
+
+reads the card data on disk
+
+**Kind**: instance method of [<code>Ripper</code>](#Ripper)  
+**Returns**: <code>Promise</code> - - A promise that returns an object if resolved
+                           or an error if rejected  
+**Resolve**: <code>Object</code>        - the card data read from disk  
+**Rejects**: <code>Error</code>  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| cardId | <code>String</code> | the card ID number. |
+
+**Example**  
+```js
+readCardData('HMK_01-001');
+```
+<a name="Ripper+getSetUrls"></a>
+
+### ripper.getSetUrls() ⇒ <code>Promise</code>
 getSetUrls
 
 accepts no parameters and returns a list of all set URLs found on p-memories
 website.
 
-**Kind**: global function  
+**Kind**: instance method of [<code>Ripper</code>](#Ripper)  
 **Returns**: <code>Promise</code> - - A promise that returns an array if resolved
                          or an error if rejected  
 **Resolve**: <code>Array</code>       - An array containing set URLs  
 **Rejects**: <code>Error</code>       - An error which states the cause  
-<a name="ripAll"></a>
+<a name="Ripper+ripCardDataAndSave"></a>
 
-## ripAll() ⇒ <code>Promise</code>
+### ripper.ripCardDataAndSave()
+ripCardDataAndSave
+
+**Kind**: instance method of [<code>Ripper</code>](#Ripper)  
+<a name="Ripper+ripAll"></a>
+
+### ripper.ripAll() ⇒ <code>Promise</code>
 ripAll
 
 accepts no parameters and downloads all card data and card images
 found p-memories.com.
 
-**Kind**: global function  
+**Kind**: instance method of [<code>Ripper</code>](#Ripper)  
 **Returns**: <code>Promise</code> - - A promise that returns a number if resolved
                          or an error if rejected  
 **Resolve**: <code>Number</code>      - The number of card data ripped from p-memories  
 **Rejects**: <code>Error</code>       - An error which states the cause  
-<a name="ripUrl"></a>
+<a name="Ripper+ripUrl"></a>
 
-## ripUrl(url, throttle, incremental) ⇒ <code>Promise</code>
+### ripper.ripUrl(url) ⇒ <code>Promise</code>
 ripUrl
 
 Rip a resource. Used by the CLI.
@@ -261,7 +267,7 @@ url could be one of several resources.
   * Set URL   (defers to ripSetData)
   * undefined (defers to ripAll)
 
-**Kind**: global function  
+**Kind**: instance method of [<code>Ripper</code>](#Ripper)  
 **Returns**: <code>Promise</code> - - A promise that returns a number if resolved
                             or an error if rejected  
 **Resolve**: <code>Number</code>         - The number of card data ripped  
@@ -270,12 +276,61 @@ url could be one of several resources.
 | Param | Type | Description |
 | --- | --- | --- |
 | url | <code>String</code> | The URL to rip |
-| throttle | <code>Number</code> | Seconds to wait between scrape requests.                             used as a way of being a good neighbor, as making                             request too fast may bog down p-memories website                             for other visitors, and we don't want that! |
-| incremental | <code>Boolean</code> | If true, data and images are downloaded                                only if they do not already exist on disk. |
 
-<a name="identifyUrl"></a>
+<a name="Ripper+saveCardData"></a>
 
-## identifyUrl(url) ⇒ <code>String</code>
+### ripper.saveCardData(cardData) ⇒ <code>Promise</code>
+saveCardData
+
+Download the card data and image file only if it doesn't already exist
+locally.
+
+**Kind**: instance method of [<code>Ripper</code>](#Ripper)  
+**Returns**: <code>Promise</code> - - A promise that returns a number if resolved
+                            or an error if rejected  
+**Resolve**: <code>Array</code>          - An array containing result of this.downloadImage
+                            and this.writeCardData.  
+**Rejects**: <code>Error</code>          - An error which states the cause  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| cardData | <code>Object</code> | The cardData |
+
+<a name="Ripper+isLocalData"></a>
+
+### ripper.isLocalData(cardData) ⇒ <code>Promise</code>
+isLocalData
+
+Returns a promise of True or False depending on whether or not the
+card data exists on disk.
+
+**Kind**: instance method of [<code>Ripper</code>](#Ripper)  
+**Resolve**: <code>Boolean</code>  
+**Rejects**: <code>Error</code>  
+
+| Param | Type |
+| --- | --- |
+| cardData | <code>Object</code> | 
+
+<a name="Ripper+isLocalCard"></a>
+
+### ripper.isLocalCard(cardId) ⇒ <code>Promise</code>
+isLocalCard
+
+Returns a promise of True or False depending on whether or not the
+card data exists on disk.
+
+**Kind**: instance method of [<code>Ripper</code>](#Ripper)  
+**Resolve**: <code>Boolean</code>  
+**Rejects**: <code>Error</code>  
+
+| Param | Type |
+| --- | --- |
+| cardId | <code>String</code> | 
+
+<a name="Ripper+identifyUrl"></a>
+
+### ripper.identifyUrl(url) ⇒ <code>String</code>
 identifyUrl
 
 Identify the type of URL the user is sending us. Can be either:
@@ -284,16 +339,16 @@ Identify the type of URL the user is sending us. Can be either:
   * Set URL
   * undefined
 
-**Kind**: global function  
+**Kind**: instance method of [<code>Ripper</code>](#Ripper)  
 **Returns**: <code>String</code> - urlType - either, "card", or "set"  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | url | <code>String</code> | the URL to identify |
 
-<a name="rip"></a>
+<a name="Ripper+rip"></a>
 
-## rip(options) ⇒ <code>Promise</code>
+### ripper.rip() ⇒ <code>Promise</code>
 rip
 
 Rip card data
@@ -301,51 +356,49 @@ Rip card data
 Determines the correct method to use to rip card data based on input.
 Defers to more specific functions for data rippage.
 
-**Kind**: global function  
+**Kind**: instance method of [<code>Ripper</code>](#Ripper)  
 **Returns**: <code>Promise</code> - - A promise that returns a string if resolved
                             or an error if rejected  
 **Resolve**: <code>String</code>         - A report of ripped card data  
 **Rejects**: <code>Error</code>          - An error which states the cause  
+<a name="Ripper+getSetUrlFromSetAbbr"></a>
 
-| Param | Type | Description |
-| --- | --- | --- |
-| options | <code>Object</code> | The URL to identify |
-
-<a name="getSetUrlFromSetAbbr"></a>
-
-## getSetUrlFromSetAbbr(setAbbr, attemptNumber) ⇒ <code>String</code>
+### ripper.getSetUrlFromSetAbbr(setAbbr, attemptNumber) ⇒ <code>Promise</code>
 getSetUrlFromSetAbbr
 
 taking a set abbreviation as it's sole parameter, return a setURL
 of the card set.
 
-**Kind**: global function  
-**Returns**: <code>String</code> - - A p-memories.com card set URL  
+**Kind**: instance method of [<code>Ripper</code>](#Ripper)  
+**Returns**: <code>Promise</code> - - A promise that returns a string if resolved
+                            or an error if rejected  
+**Resolve**: <code>String</code>         - A p-memories.com card set URL  
+**Rejects**: <code>Error</code>          - An error which states the cause  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | setAbbr | <code>String</code> | The set abbreviation |
-| attemptNumber | <code>Number</code> | the number of times getSetUrlFromSetAbbr has                                 tried. Used to limit recursive calls |
+| attemptNumber | <code>Number</code> | the number of times getSetUrlFromSetAbbr has |
 
-<a name="getImageUrlFromEachSet"></a>
+<a name="Ripper+getImageUrlFromEachSet"></a>
 
-## getImageUrlFromEachSet() ⇒ <code>Array</code>
+### ripper.getImageUrlFromEachSet() ⇒ <code>Array</code>
 getImageUrlFromEachSet
 
 taking a set abbreviation as it's sole parameter, return a setURL
 of the card set.
 
-**Kind**: global function  
+**Kind**: instance method of [<code>Ripper</code>](#Ripper)  
 **Returns**: <code>Array</code> - - A p-memories.com card set URL  
-<a name="createSetAbbreviationIndex"></a>
+<a name="Ripper+createSetAbbreviationIndex"></a>
 
-## createSetAbbreviationIndex() ⇒ <code>Array</code>
+### ripper.createSetAbbreviationIndex() ⇒ <code>Array</code>
 createSetAbbreviationIndex
 
 Create a mapping of set abbreviations to set urls.
 This map is used to get set URLs from a set Abbreviation.
 
-**Kind**: global function  
+**Kind**: instance method of [<code>Ripper</code>](#Ripper)  
 **Returns**: <code>Array</code> - - An array of setAbbr/setUrl pairs  
 **Example**  
 ```js
@@ -357,28 +410,28 @@ This map is used to get set URLs from a set Abbreviation.
     ...
  ]
 ```
-<a name="getSetAbbrFromImageUrl"></a>
+<a name="Ripper+getSetAbbrFromImageUrl"></a>
 
-## getSetAbbrFromImageUrl(imageUrl) ⇒ <code>String</code>
+### ripper.getSetAbbrFromImageUrl(imageUrl) ⇒ <code>String</code>
 getSetAbbrFromImageUrl
 
 Determines the set abbreviation given a card image URL.
 
-**Kind**: global function  
+**Kind**: instance method of [<code>Ripper</code>](#Ripper)  
 **Returns**: <code>String</code> - - A p-memories set abbreviation.  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | imageUrl | <code>String</code> | A p-memories card image URL. |
 
-<a name="getFirstCardImageUrl"></a>
+<a name="Ripper+getFirstCardImageUrl"></a>
 
-## getFirstCardImageUrl(setUrl) ⇒ <code>Promise</code>
+### ripper.getFirstCardImageUrl(setUrl) ⇒ <code>Promise</code>
 getFirstCardImageUrl
 
 Accepts a set URL as parameter and returns the URL of the first card in that set.
 
-**Kind**: global function  
+**Kind**: instance method of [<code>Ripper</code>](#Ripper)  
 **Returns**: <code>Promise</code> - - A promise that returns an string if resolved
                          or an error if rejected  
 **Resolve**: <code>String</code>      - An image URL of the first card in the set  
@@ -387,4 +440,27 @@ Accepts a set URL as parameter and returns the URL of the first card in that set
 | Param | Type | Description |
 | --- | --- | --- |
 | setUrl | <code>String</code> | the URL to the card set |
+
+<a name="Ripper+parseCardId"></a>
+
+### ripper.parseCardId(cardId) ⇒ <code>Promise</code>
+parseCardId
+
+parses the card ID and returns an object containing
+  * setAbbr
+  * release
+  * number
+  * num
+  * id
+  * variation
+
+**Kind**: instance method of [<code>Ripper</code>](#Ripper)  
+**Returns**: <code>Promise</code> - - A promise that returns an object if resolved
+                         or an error if rejected  
+**Resolve**: <code>Object</code>  
+**Rejects**: <code>Error</code>  
+
+| Param | Type |
+| --- | --- |
+| cardId | <code>String</code> | 
 

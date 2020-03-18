@@ -59,4 +59,4 @@ Show commandline usage and help
 
 ## TL;DR:
 
-This project creates a JSON/JPG card dataset using p-memories.com as the source. `npm run start`.
+This project creates a JSON/JPG card dataset using p-memories.com as the source. `npm run rip`.
