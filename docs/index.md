@@ -55,8 +55,11 @@ Show commandline usage and help
     ./p-data.js -h
     ./p-data.js rip -h
 
+## Code Documentation
+
+[ripper](util/ripper.js)
 
 
-## TL;DR:
+## Code Repository
 
-This project creates a JSON/JPG card dataset using p-memories.com as the source. `npm run rip`.
+https://github.com/insanity54/precious-data/
