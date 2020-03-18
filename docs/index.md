@@ -57,7 +57,7 @@ Show commandline usage and help
 
 ## Code Documentation
 
-[ripper](util/ripper.js)
+[util/ripper.js](ripper)
 
 
 ## Code Repository
