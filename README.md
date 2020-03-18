@@ -10,9 +10,7 @@ The goal of this project is to create a dataset of English translated P-Memories
 
 ## What the Precious Data project does
 
-Precious Data has three parts.
-
-### 1) Data Ripper
+### Data Ripper
 
 The data ripper uses Javascript to request, parse, and organize card data from P-Memories.com. Once parsed, card data is saved on disk in set-labelled folders as JSON files. Because of the nature of this script, this functionality is throttled, and not meant to be used often, as doing so too fast or too often could be seen as malicious.
 
@@ -57,28 +55,6 @@ Show commandline usage and help
     ./p-data.js -h
     ./p-data.js rip -h
 
-
-### 2) Data Display
-
-JSON is not a good way for humans to look through large collections of data. For this reason, Precious Data has a simple HTML display of the downloaded card data.
-
-This data display is meant to be a quick way to browse card data and verify that the data ripper ran successfully and produced a good dataset. It is not meant to be a full featured card browser with fantastic UI at this time.
-
-**Usage:**
-
-    npm start
-
-### 3) Tests
-
-**Unit tests** are implemented in Precious Data as a method for ensuring that the code functions as the programmer intended.
-
-**Integration tests** are implemented in Precious Data as a method for ensuring that the ripper code can correctly retrieve data from the official P-Memories website. In other words, integration tests give the Precious Data operator an indication of whether or not the P-Memories website has changed to the point where Precious Data software will not know where to look for the data.
-
-**Usage:**
-
-    npm run test
-
-(see below note on fixtures.)
 
 
 ## TL;DR:
