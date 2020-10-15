@@ -6,8 +6,6 @@ Precious Data is a project to copy and mirror trading card data from the officia
 
 P-Memories is a Japanese exclusive card game with card titles, text, and flavor text primarily written in Hiragana, Katakana, and Kanji.
 
-The goal of this project is to create a dataset of English translated P-Memories cards. With this dataset, myself and third-parties will be empowered to create apps which encourage English speaking players to better enjoy P-Memories card game.
-
 ## What the Precious Data project does
 
 ### Data Ripper
