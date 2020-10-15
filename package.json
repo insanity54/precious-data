@@ -2,7 +2,7 @@
   "name": "precious-data",
   "version": "0.0.1",
   "description": "Precious Memories Card Data",
-  "main": "index.js",
+  "main": "p-data.js",
   "scripts": {
     "test": "DEBUG=precious-data mocha",
     "rip": "DEBUG=precious-data ./p-data.js rip -a",
@@ -30,6 +30,7 @@
   "dependencies": {
     "axios": "^0.19.2",
     "bluebird": "^3.7.2",
-    "commander": "^4.1.1"
+    "fuse.js": "^6.4.1",
+    "yargs": "^16.0.3"
   }
 }
