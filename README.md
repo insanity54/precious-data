@@ -1,5 +1,7 @@
 # Precious Data
 
+[![CircleCI](https://circleci.com/gh/insanity54/precious-data.svg?style=svg)](https://circleci.com/gh/insanity54/precious-data)
+
 *a.k.a. Pirate Memories because that's more fun.*
 
 Precious Data is a project to copy and mirror trading card data from the official Precious Memories (P-Memories) website.
