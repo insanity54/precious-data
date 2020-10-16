@@ -1,7 +1,7 @@
 const chai = require("chai");
 const assert = chai.assert;
 const chaiAsPromised = require("chai-as-promised");
-const Ripper = require('../util/ripper');
+const Ripper = require('../lib/ripper');
 const fs = require('fs');
 const path = require('path');
 chai.use(chaiAsPromised);

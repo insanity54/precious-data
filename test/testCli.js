@@ -1,10 +1,8 @@
 const assert = require('chai').assert;
 const fs = require('fs');
 const path = require('path');
-const cliPath = path.join(__dirname, '..', 'util', 'program.js');
-const cli = require(cliPath);
+const cliPath = path.join(__dirname, '..', 'p-data.js');
 const Promise = require('bluebird');
-const execFile = Promise.promisify(require('child_process').execFile);
 
 
 describe('p-data.js CLI', function () {
@@ -16,6 +14,19 @@ describe('p-data.js CLI', function () {
     });
   });
   describe('rip subcommand', function () {
+    it('should make a Set suggestion if the Set abbreviation doesnt have an exact match', () => {
+      console.log('WE OUT HERE')
+      const parser = require('yargs')().command(require('../commands/rip'))
+      return new Promise((resolve, reject) => {
+        parser.parse('rip -s OREIMO', (err, argv, output) => {
+          if (err) reject(err)
+          resolve(output)
+        })
+      }).then((output) => {
+        assert.match(output, /Did you mean/, 'the thingy did not make a suggestion')
+      })
+
+    })
     it('should rip a card given a URL to the card', function () {
       return execFile(cliPath, ['node', './p-data.js', 'rip', '-u', 'http://p-memories.com/node/906300'])
         .then((res) => {

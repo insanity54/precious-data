@@ -58,7 +58,7 @@ exports.handler = (options) => {
     quiet: options.quiet,
   });
   return ripper.rip()
-  .then((res) => {
-    console.log(res);
-  })
+    .then((res) => {
+      console.log(res);
+    })
 }
