@@ -9,6 +9,7 @@ let program = yargs(process.argv.slice(2))
 
 program
   .usage('Usage: $0 <cmd> [options]')
+  .epilogue('Looking for prememo cards, or card translations? Check out https://sbtp.xyz/')
   .commandDir('./commands')
   .version('version', version).alias('version', 'V')
   .help('help')
