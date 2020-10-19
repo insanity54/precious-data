@@ -7,7 +7,8 @@
     "test": "DEBUG=precious-data mocha",
     "rip": "DEBUG=precious-data ./p-data.js rip -a",
     "dev": "npx supervisor index",
-    "jsdoc": "npx jsdoc-to-markdown ./util/ripper.js > ./docs/ripper.md"
+    "jsdoc": "npx jsdoc-to-markdown ./util/ripper.js > ./docs/ripper.md",
+    "fixtures": "node lib/createFixtures"
   },
   "keywords": [
     "precious",
@@ -22,15 +23,13 @@
   "author": "Chris Grimmett <chris@grimtech.net>",
   "license": "Unlicense",
   "devDependencies": {
-    "chai": "^4.2.0",
-    "chai-as-promised": "^7.1.1",
-    "cheerio": "^1.0.0-rc.3",
-    "express": "^4.17.1",
-    "mocha": "^8.1.3"
+    "nock": "^13.0.4"
   },
   "dependencies": {
     "axios": "^0.19.2",
     "bluebird": "^3.7.2",
+    "cheerio": "^1.0.0-rc.3",
+    "debug": "^4.2.0",
     "fuse.js": "^6.4.1",
     "yargs": "^16.0.3"
   }

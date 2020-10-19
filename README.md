@@ -1,6 +1,6 @@
 # Precious Data
 
-[![CircleCI](https://circleci.com/gh/insanity54/precious-data.svg?style=svg)](https://circleci.com/gh/insanity54/precious-data)
+[![CircleCI](https://circleci.com/gh/insanity54/precious-data.svg?style=svg)](https://circleci.com/gh/insanity54/precious-data) 
 
 *a.k.a. Pirate Memories because that's more fun.*
 
