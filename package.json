@@ -23,6 +23,7 @@
   "author": "Chris Grimmett <chris@grimtech.net>",
   "license": "Unlicense",
   "devDependencies": {
+    "jest": "^26.6.0",
     "nock": "^13.0.4"
   },
   "dependencies": {
