@@ -4,7 +4,7 @@
   "description": "Precious Memories Card Data",
   "main": "p-data.js",
   "scripts": {
-    "test": "DEBUG=precious-data mocha",
+    "test": "DEBUG=precious-data jest --verbose",
     "rip": "DEBUG=precious-data ./p-data.js rip -a",
     "dev": "npx supervisor index",
     "jsdoc": "npx jsdoc-to-markdown ./util/ripper.js > ./docs/ripper.md",
