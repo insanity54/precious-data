@@ -2,13 +2,13 @@
 const Ripper = require('../lib/ripper')
 const path = require('path')
 const Promise = require('bluebird')
-const axios = require('axios');
+const axios = require('axios')
 const nock = require('nock')
+const fs = require('fs')
 
 nockBack = nock.back
 nockBack.fixtures = path.join(__dirname, '..', 'fixtures')
 nockBack.setMode('lockdown')
-jest.mock('fs')
 
 
 let ripper
@@ -34,11 +34,13 @@ describe('P-Memories Ripper Library', () => {
     it(
       'should resolve { cardUrl, cardImageUrl } when given a card ID',
       () => {
-        return ripper.lookupCardUrl('SSSS_01-001').then((card) => {
-          expect(typeof card).toBe('object');
-          expect(card.cardUrl).toEqual('http://p-memories.com/node/926791');
-          expect(card.cardImageUrl).toEqual('http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg');
-        });
+        return nockBack('SSSS.html.json').then(({ nockDone, context }) => {
+          return ripper.lookupCardUrl('SSSS_01-001').then((card) => {
+            expect(card).toHaveProperty('cardUrl', 'http://p-memories.com/node/926791')
+            expect(card).toHaveProperty('cardImageUrl', 'http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg')
+            context.assertScopesFinished()
+          }).then(nockDone)
+        })
       }
     )
   });
@@ -310,36 +312,90 @@ http://p-memories.com/images/product/HMK/HMK_01-001.jpg
     })
   })
 
+  describe('splitTextList', () => {
+    it('should return an empty array if not receiving anything', () => {
+      const list = ripper.splitTextList()
+      expect(list).toStrictEqual([])
+    })
+    it('should return an empty array if receiving an empty string', () => {
+      const list = ripper.splitTextList('')
+      expect(list).toStrictEqual([])
+    })
+    it('should convert a {String} list into an array of strings', () => {
+      const list = ripper.splitTextList('ヘッドフォン、音楽')
+      expect(list).toStrictEqual([
+        'ヘッドフォン',
+        '音楽'
+      ])
+    })
+  })
+
+  describe('parseCardDataFromHtml', () => {
+    it('should get card data from a {String} html', () => {
+      const html = require(path.join(nockBack.fixtures, 'HMK_01-001.html.json'))[0].response
+      return ripper
+        .parseCardDataFromHtml(html)
+        .then((data) => {
+          expect(data).toHaveProperty('number', '01-001')
+          expect(data).toHaveProperty('rarity', 'SR（サイン）')
+          expect(data).toHaveProperty('setName', '初音ミク')
+          expect(data).toHaveProperty('name', '初音 ミク')
+          expect(data).toHaveProperty('type', 'キャラクター')
+          expect(data).toHaveProperty('cost', '4')
+          expect(data).toHaveProperty('source', '1')
+          expect(data).toHaveProperty('color', '緑')
+          expect(data).toHaveProperty('characteristic', ['ヘッドフォン', '音楽'])
+          expect(data).toHaveProperty('ap', '40')
+          expect(data).toHaveProperty('dp', '30')
+          expect(data).toHaveProperty('parallel', '')
+          expect(data).toHaveProperty('text', 'このカードが登場した場合、手札から名称に「グリッドマン」を含むキャラ1枚を場に出すことができる。[メイン/自分]:《休》名称に「グリッドマン」を含む自分のキャラ1枚は、ターン終了時まで+20/+20を得る。その場合、カードを1枚引く。')
+          expect(data).toHaveProperty('flavor', '-')
+          expect(data).toHaveProperty('image', 'http://p-memories.com/images/product/HMK/HMK_01-001.jpg')
+          expect(data).toHaveProperty('url', 'http://p-memories.com/node/383031')
+          expect(data).toHaveProperty('setAbbr', 'HMK')
+          expect(data).toHaveProperty('num', '001')
+          expect(data).toHaveProperty('release', '01')
+          expect(data).toHaveProperty('id', 'HMK 01-001')
+        })
+    })
+
+    it('should reject to throw an error if not receiving any param', () => {
+      return expect(ripper.parseCardDataFromHtml()).rejects.toThrow('parameter')
+    })
+  })
+
   describe('ripCardData', () => {
     it('Should get card data from a card URL', () => {
-
-      return ripper
-      .ripCardData('http://p-memories.com/node/926791')
-      .then((data) => {
-        expect(typeof data).toBe('object');
-        expect(data.number).toEqual('01-001');
-        expect(data.rarity).toEqual('SR');
-        expect(data.setName).toEqual('SSSS.GRIDMAN');
-        expect(data.name).toEqual('響 裕太');
-        expect(data.type).toEqual('キャラクター');
-        expect(data.usageCost).toEqual('6');
-        expect(data.outbreakCost).toEqual('3');
-        expect(data.color).toEqual('赤');
-        expect(data.characteristic).toEqual('制服');
-        expect(data.ap).toEqual('-');
-        expect(data.dp).toEqual('-');
-        expect(data.parallel).toEqual('');
-        expect(data.text).toEqual(
-          'このカードが登場した場合、手札から名称に「グリッドマン」を含むキャラ1枚を場に出すことができる。[メイン/自分]:《休》名称に「グリッドマン」を含む自分のキャラ1枚は、ターン終了時まで+20/+20を得る。その場合、カードを1枚引く。'
-        );
-        expect(data.flavor).toEqual('グリッドマン…。オレと一緒に戦ってくれ！');
-        expect(data.url).toEqual('http://p-memories.com/node/926791');
-        expect(data.image).toEqual('http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg');
-        expect(data.setAbbr).toEqual('SSSS');
-        expect(data.id).toEqual('SSSS_01-001');
-        expect(data.num).toEqual('001');
-        expect(data.release).toEqual('01');
-      });
+      return nockBack('SSSS_01-001.html.json').then(({ nockDone }) => {
+        return ripper
+          .ripCardData('http://p-memories.com/node/926791')
+          .then((data) => {
+            expect(typeof data).toBe('object');
+            expect(data.number).toEqual('01-001');
+            expect(data.rarity).toEqual('SR');
+            expect(data.setName).toEqual('SSSS.GRIDMAN');
+            expect(data.name).toEqual('響 裕太');
+            expect(data.type).toEqual('キャラクター');
+            expect(data.usageCost).toEqual('6');
+            expect(data.outbreakCost).toEqual('3');
+            expect(data.color).toEqual('赤');
+            expect(data.characteristic).toEqual('制服');
+            expect(data.ap).toEqual('-');
+            expect(data.dp).toEqual('-');
+            expect(data.parallel).toEqual('');
+            expect(data.text).toEqual(
+              'このカードが登場した場合、手札から名称に「グリッドマン」を含むキャラ1枚を場に出すことができる。[メイン/自分]:《休》名称に「グリッドマン」を含む自分のキャラ1枚は、ターン終了時まで+20/+20を得る。その場合、カードを1枚引く。'
+            );
+            expect(data.flavor).toEqual('グリッドマン…。オレと一緒に戦ってくれ！');
+            expect(data.url).toEqual('http://p-memories.com/node/926791');
+            expect(data.image).toEqual('http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg');
+            expect(data.setAbbr).toEqual('SSSS');
+            expect(data.id).toEqual('SSSS_01-001');
+            expect(data.num).toEqual('001');
+            expect(data.release).toEqual('01');
+          })
+          .then(nockDone)
+      })
     });
 
     xit('should accept a card ID as first param', () => {
@@ -373,10 +429,13 @@ http://p-memories.com/images/product/HMK/HMK_01-001.jpg
     it(
       'should return a promise which rejects with an error if receiving a URL to a card which has already been downloaded',
       () => {
-        let targetCardPath = path.join(__dirname, '..', 'data', 'HMK', '01', 'HMK_01-001.json')
-        let creationTimeBefore = fs.statSync(targetCardPath).mtimeMs;
-        let cd = ripper.ripCardData('http://p-memories.com/node/383031', 'http://p-memories.com/images/product/HMK/HMK_01-001.jpg');
-        return expect(cd).rejects.toThrow(/EEXIST/)
+        return nockBack('HMK_01-001.html.json').then(({ nockDone }) => {
+          let targetCardPath = path.join(__dirname, '..', 'data', 'HMK', '01', 'HMK_01-001.json')
+          let creationTimeBefore = fs.statSync(targetCardPath).mtimeMs;
+          let cd = ripper.ripCardData('http://p-memories.com/node/383031', 'http://p-memories.com/images/product/HMK/HMK_01-001.jpg');
+          return expect(cd).rejects.toThrow(/EEXIST/)
+            .then(nockDone)
+        })
       }
     );
 

@@ -8,7 +8,7 @@
     "rip": "DEBUG=precious-data ./p-data.js rip -a",
     "dev": "npx supervisor index",
     "jsdoc": "npx jsdoc-to-markdown ./util/ripper.js > ./docs/ripper.md",
-    "fixtures": "node lib/createFixtures"
+    "fixtures": "node fixtures/generation/index"
   },
   "keywords": [
     "precious",
