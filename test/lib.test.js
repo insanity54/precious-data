@@ -31,6 +31,12 @@ describe('P-Memories Ripper Library', () => {
   })
 
   describe('lookupCardUrl', () => {
+    it('should throw an error if not receiving a parameter', () => {
+      return expect(() => { ripper.lookupCardUrl() }).toThrow(/Got undefined/)
+    })
+    it('should throw an error if receiving an empty string', () => {
+      return expect(() => { ripper.lookupCardUrl('') }).toThrow(/Got an empty string/)
+    })
     it(
       'should resolve { cardUrl, cardImageUrl } when given a card ID',
       () => {
@@ -85,7 +91,7 @@ describe('P-Memories Ripper Library', () => {
   describe('parseCardId', () => {
 
     /**
-    for Rubular testing:
+    test strings for Rubular/regexr testing:
 
 /images/product/PM_HS/PM_HS_01-002.jpg
 PM_HS_03-008
@@ -93,8 +99,15 @@ http://p-memories.com/images/product/GPFN/GPFN_01-030a.jpg
 SSSS_P-001
 http://p-memories.com/images/product/HMK/HMK_01-001.jpg
 /images/product/PM_K-ON_Part2/PM_K-ON_Part2_02-048.jpg
+KON 01-068
 
      */
+     it('should throw if receiving no parameter', () => {
+       return expect(() => { ripper.parseCardId() }).toThrow(/Got undefined/)
+     })
+    it('should throw an error if receiving a string that does match the required format', () => {
+      return expect(() => { ripper.parseCardId('taco bell') }).toThrow(/cardId is not valid/)
+    })
     it(
       'should return an object with setAbbr, release, number, and num',
       () => {
@@ -103,7 +116,7 @@ http://p-memories.com/images/product/HMK/HMK_01-001.jpg
         expect(p.release).toEqual('01');
         expect(p.number).toEqual('01-001');
         expect(p.num).toEqual('001');
-        expect(p.id).toEqual('HMK_01-001');
+        expect(p.id).toEqual('HMK 01-001');
         expect(p.variation).toEqual('');
       }
     );
@@ -114,7 +127,7 @@ http://p-memories.com/images/product/HMK/HMK_01-001.jpg
       expect(p.release).toEqual('02');
       expect(p.number).toEqual('02-001');
       expect(p.num).toEqual('001');
-      expect(p.id).toEqual('YYY2_02-001');
+      expect(p.id).toEqual('YYY2 02-001');
       expect(p.variation).toEqual('');
     });
 
@@ -124,7 +137,7 @@ http://p-memories.com/images/product/HMK/HMK_01-001.jpg
       expect(p.release).toEqual('01');
       expect(p.number).toEqual('01-001');
       expect(p.num).toEqual('001');
-      expect(p.id).toEqual('HMK_01-001');
+      expect(p.id).toEqual('HMK 01-001');
       expect(p.variation).toEqual('');
     });
 
@@ -133,12 +146,12 @@ http://p-memories.com/images/product/HMK/HMK_01-001.jpg
     });
 
     it('should handle a card ID with a letter as the release', () => {
-      let p = ripper.parseCardId('SSSS_P-001');
+      let p = ripper.parseCardId('SSSS P-001');
       expect(p.setAbbr).toEqual('SSSS');
       expect(p.release).toEqual('P');
       expect(p.number).toEqual('P-001');
       expect(p.num).toEqual('001');
-      expect(p.id).toEqual('SSSS_P-001');
+      expect(p.id).toEqual('SSSS P-001');
       expect(p.variation).toEqual('');
     });
 
@@ -150,7 +163,7 @@ http://p-memories.com/images/product/HMK/HMK_01-001.jpg
         expect(p.release).toEqual('01');
         expect(p.number).toEqual('01-030a');
         expect(p.num).toEqual('030');
-        expect(p.id).toEqual('GPFN_01-030a');
+        expect(p.id).toEqual('GPFN 01-030a');
         expect(p.variation).toEqual('a');
       }
     )
@@ -161,7 +174,7 @@ http://p-memories.com/images/product/HMK/HMK_01-001.jpg
       expect(p.release).toEqual('03');
       expect(p.number).toEqual('03-008');
       expect(p.num).toEqual('008');
-      expect(p.id).toEqual('PM_HS_03-008');
+      expect(p.id).toEqual('PM_HS 03-008');
       expect(p.variation).toEqual('');
     });
 
@@ -173,7 +186,7 @@ http://p-memories.com/images/product/HMK/HMK_01-001.jpg
         expect(p.release).toEqual('01')
         expect(p.number).toEqual('01-002')
         expect(p.num).toEqual('002')
-        expect(p.id).toEqual('PM_HS_01-002')
+        expect(p.id).toEqual('PM_HS 01-002')
         expect(p.variation).toEqual('')
       }
     )
@@ -186,10 +199,28 @@ http://p-memories.com/images/product/HMK/HMK_01-001.jpg
         expect(p.release).toEqual('02')
         expect(p.number).toEqual('02-048')
         expect(p.num).toEqual('048')
-        expect(p.id).toEqual('PM_K-ON_Part2_02-048')
+        expect(p.id).toEqual('PM_K-ON_Part2 02-048')
         expect(p.variation).toEqual('')
       }
     );
+
+    it(
+      'should handle a cardID with a space between the setAbbr and the release',
+    () => {
+      let p = ripper.parseCardId('HMK 02-003')
+      expect(p.setAbbr).toEqual('HMK')
+    })
+
+    it('should handle GPFN P-004a',
+    () => {
+      let p = ripper.parseCardId('GPFN P-004a')
+      expect(p.setAbbr).toEqual('GPFN')
+      expect(p.release).toEqual('P')
+      expect(p.number).toEqual('P-004a')
+      expect(p.num).toEqual('004')
+      expect(p.id).toEqual('GPFN P-004a')
+      expect(p.variation).toEqual('a')
+    })
 
     it('should handle GPFN_P-004a', () => {
       let p = ripper.parseCardId('GPFN_P-004a');
@@ -197,7 +228,7 @@ http://p-memories.com/images/product/HMK/HMK_01-001.jpg
       expect(p.release).toEqual('P')
       expect(p.number).toEqual('P-004a')
       expect(p.num).toEqual('004')
-      expect(p.id).toEqual('GPFN_P-004a')
+      expect(p.id).toEqual('GPFN P-004a')
       expect(p.variation).toEqual('a')
     });
   });
@@ -348,7 +379,7 @@ http://p-memories.com/images/product/HMK/HMK_01-001.jpg
           expect(data).toHaveProperty('ap', '40')
           expect(data).toHaveProperty('dp', '30')
           expect(data).toHaveProperty('parallel', '')
-          expect(data).toHaveProperty('text', 'このカードが登場した場合、手札から名称に「グリッドマン」を含むキャラ1枚を場に出すことができる。[メイン/自分]:《休》名称に「グリッドマン」を含む自分のキャラ1枚は、ターン終了時まで+20/+20を得る。その場合、カードを1枚引く。')
+          expect(data).toHaveProperty('text', 'このカードが登場した場合、手札から『初音 ミク』のキャラ1枚を場に出すことができる。[アプローチ/両方]:《0》自分の「初音 ミク」2枚を休息状態にする。その場合、自分のキャラ1枚は、ターン終了時まで+10/±0または±0/+10を得る。')
           expect(data).toHaveProperty('flavor', '-')
           expect(data).toHaveProperty('image', 'http://p-memories.com/images/product/HMK/HMK_01-001.jpg')
           expect(data).toHaveProperty('url', 'http://p-memories.com/node/383031')
@@ -365,6 +396,12 @@ http://p-memories.com/images/product/HMK/HMK_01-001.jpg
   })
 
   describe('ripCardData', () => {
+    it('Should throw an error if not receiving any param', () => {
+      return expect(() => { ripper.ripCardData() }).toThrow(/Got undefined/)
+    })
+    it('Should throw an error if receiving an empty string', () => {
+      return expect(() => { ripper.ripCardData('') }).toThrow(/Got an empty string/)
+    })
     it('Should get card data from a card URL', () => {
       return nockBack('SSSS_01-001.html.json').then(({ nockDone }) => {
         return ripper
@@ -376,10 +413,10 @@ http://p-memories.com/images/product/HMK/HMK_01-001.jpg
             expect(data.setName).toEqual('SSSS.GRIDMAN');
             expect(data.name).toEqual('響 裕太');
             expect(data.type).toEqual('キャラクター');
-            expect(data.usageCost).toEqual('6');
-            expect(data.outbreakCost).toEqual('3');
+            expect(data.cost).toEqual('6');
+            expect(data.source).toEqual('3');
             expect(data.color).toEqual('赤');
-            expect(data.characteristic).toEqual('制服');
+            expect(data.characteristic).toEqual(['制服']);
             expect(data.ap).toEqual('-');
             expect(data.dp).toEqual('-');
             expect(data.parallel).toEqual('');
@@ -390,7 +427,7 @@ http://p-memories.com/images/product/HMK/HMK_01-001.jpg
             expect(data.url).toEqual('http://p-memories.com/node/926791');
             expect(data.image).toEqual('http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg');
             expect(data.setAbbr).toEqual('SSSS');
-            expect(data.id).toEqual('SSSS_01-001');
+            expect(data.id).toEqual('SSSS 01-001');
             expect(data.num).toEqual('001');
             expect(data.release).toEqual('01');
           })
@@ -398,19 +435,23 @@ http://p-memories.com/images/product/HMK/HMK_01-001.jpg
       })
     });
 
-    xit('should accept a card ID as first param', () => {
+    it('should accept a card ID as first param', () => {
       // @TODO https://github.com/insanity54/precious-data/issues/3
-      return ripper.ripCardData('MZK_01-001').then((data) => {
-        expect(typeof data).toBe('object');
-        expect(data.number).toEqual('01-001');
-        expect(data.url).toEqual('http://p-memories.com/node/942168');
-        expect(data.image).toEqual('http://p-memories.com/images/product/MZK/MZK_01-001.jpg');
-      });
+      return nockBack('SSSS_01-001.html.json')
+        .then(({ nockDone }) => {
+          return ripper.ripCardData('SSSS 01-001').then((data) => {
+            expect(typeof data).toBe('object');
+            expect(data.number).toEqual('01-001');
+            expect(data.url).toEqual('http://p-memories.com/node/926791');
+            expect(data.image).toEqual('http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg');
+          }).then(nockDone)
+        })
     });
 
-    it(
+    xit(
       'should accept a second parameter, a cardImageUrl, which will be used to determine whether or not to make a network request to rip card data.',
       () => {
+        // https://github.com/insanity54/precious-data/issues/4
         return nockBack('GPFN_01-030a.html.json')
           .then(({ nockDone }) => {
             return ripper
@@ -419,16 +460,18 @@ http://p-memories.com/images/product/HMK/HMK_01-001.jpg
                 expect(typeof data).toBe('object');
                 expect(data.number).toEqual('01-030a');
                 expect(data.url).toEqual('http://p-memories.com/node/932341');
-                expect(data.id).toEqual('GPFN_01-030a');
+                expect(data.id).toEqual('GPFN 01-030a');
               })
               .then(nockDone)
           })
       }
     );
 
-    it(
+    xit(
       'should return a promise which rejects with an error if receiving a URL to a card which has already been downloaded',
       () => {
+          // this should happen elsewhere, before calling ripCardData in order to keep functions neat and tidy
+          // https://github.com/insanity54/precious-data/issues/4
         return nockBack('HMK_01-001.html.json').then(({ nockDone }) => {
           let targetCardPath = path.join(__dirname, '..', 'data', 'HMK', '01', 'HMK_01-001.json')
           let creationTimeBefore = fs.statSync(targetCardPath).mtimeMs;
