@@ -10,6 +10,11 @@ jest.mock('fs')
 nockBack = nock.back
 nockBack.fixtures = path.join(__dirname, '..', 'fixtures')
 
+const setAbbrIndexFixture = require(path.join(__dirname, '..', 'fixtures', 'setAbbrIndex.json'))
+const mockFileStructureA = {
+  [path.join(__dirname, '..', 'data', 'setAbbrIndex.json')]: JSON.stringify(setAbbrIndexFixture)
+}
+
 
 let ripper
 beforeEach(() => {
@@ -31,6 +36,9 @@ describe('P-Memories Ripper Library', () => {
   })
 
   describe('lookupCardUrl', () => {
+    beforeEach(() => {
+      require('fs').__setMockFiles(mockFileStructureA)
+    })
     it('should throw an error if not receiving a parameter', () => {
       return expect(() => { ripper.lookupCardUrl() }).toThrow(/Got undefined/)
     })
@@ -56,16 +64,23 @@ describe('P-Memories Ripper Library', () => {
       'should return true when receiving p-memories.com url as param',
       () => {
         let valid = ripper.isValidPMemoriesUrl('http://p-memories.com/node/926791');
-        expect(valid).toBe(true);
+        expect(valid).toBeTruthy()
       }
     );
+    it(
+      'should return true when receiving www.p-memories url as param',
+      () => {
+        let valid = ripper.isValidPMemoriesUrl('http://www.p-memories.com/node/926791');
+        expect(valid).toBeTruthy()
+      }
+    )
     it('should return false when receiving a foreign url as param', () => {
       let invalid = ripper.isValidPMemoriesUrl('http://google.com');
-      expect(invalid).toBe(false);
+      expect(invalid).toBeFalsy()
     });
     it('should return false when receiving a card ID', () => {
       let invalid = ripper.isValidPMemoriesUrl('SSSS_01-001')
-      expect(invalid).toBe(false);
+      expect(invalid).toBeFalsy()
     })
   });
 
@@ -402,35 +417,37 @@ KON 01-068
     it('Should throw an error if receiving an empty string', () => {
       return expect(() => { ripper.ripCardData('') }).toThrow(/Got an empty string/)
     })
-    it('Should get card data from a card URL', () => {
-      return nockBack('ripCardData.1.json').then(({ nockDone }) => {
-        return ripper
-          .ripCardData('http://p-memories.com/node/926791')
-          .then((data) => {
-            expect(typeof data).toBe('object');
-            expect(data.number).toEqual('01-001');
-            expect(data.rarity).toEqual('SR');
-            expect(data.setName).toEqual('SSSS.GRIDMAN');
-            expect(data.name).toEqual('響 裕太');
-            expect(data.type).toEqual('キャラクター');
-            expect(data.cost).toEqual('6');
-            expect(data.source).toEqual('3');
-            expect(data.color).toEqual('赤');
-            expect(data.characteristic).toEqual(['制服']);
-            expect(data.ap).toEqual('-');
-            expect(data.dp).toEqual('-');
-            expect(data.parallel).toEqual('');
-            expect(data.text).toEqual(
-              'このカードが登場した場合、手札から名称に「グリッドマン」を含むキャラ1枚を場に出すことができる。[メイン/自分]:《休》名称に「グリッドマン」を含む自分のキャラ1枚は、ターン終了時まで+20/+20を得る。その場合、カードを1枚引く。'
-            );
-            expect(data.flavor).toEqual('グリッドマン…。オレと一緒に戦ってくれ！');
-            expect(data.url).toEqual('http://p-memories.com/node/926791');
-            expect(data.image).toEqual('http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg');
-            expect(data.setAbbr).toEqual('SSSS');
-            expect(data.id).toEqual('SSSS 01-001');
-            expect(data.num).toEqual('001');
-            expect(data.release).toEqual('01');
-          })
+    it('Should accept a card URL and resolve to card data', () => {
+      return nockBack('ripCardData.1.json')
+        .then(({ nockDone, context }) => {
+          return ripper
+            .ripCardData('http://p-memories.com/node/926791')
+            .then((data) => {
+              expect(typeof data).toBe('object');
+              expect(data.number).toEqual('01-001');
+              expect(data.rarity).toEqual('SR');
+              expect(data.setName).toEqual('SSSS.GRIDMAN');
+              expect(data.name).toEqual('響 裕太');
+              expect(data.type).toEqual('キャラクター');
+              expect(data.cost).toEqual('6');
+              expect(data.source).toEqual('3');
+              expect(data.color).toEqual('赤');
+              expect(data.characteristic).toEqual(['制服']);
+              expect(data.ap).toEqual('-');
+              expect(data.dp).toEqual('-');
+              expect(data.parallel).toEqual('');
+              expect(data.text).toEqual(
+                'このカードが登場した場合、手札から名称に「グリッドマン」を含むキャラ1枚を場に出すことができる。[メイン/自分]:《休》名称に「グリッドマン」を含む自分のキャラ1枚は、ターン終了時まで+20/+20を得る。その場合、カードを1枚引く。'
+              );
+              expect(data.flavor).toEqual('グリッドマン…。オレと一緒に戦ってくれ！');
+              expect(data.url).toEqual('http://p-memories.com/node/926791');
+              expect(data.image).toEqual('http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg');
+              expect(data.setAbbr).toEqual('SSSS');
+              expect(data.id).toEqual('SSSS 01-001');
+              expect(data.num).toEqual('001');
+              expect(data.release).toEqual('01');
+              context.assertScopesFinished()
+            })
           .then(nockDone)
       })
     });
@@ -441,9 +458,9 @@ KON 01-068
         .then(({ nockDone }) => {
           return ripper.ripCardData('SSSS 01-001').then((data) => {
             expect(typeof data).toBe('object');
-            expect(data.number).toEqual('01-001');
-            expect(data.url).toEqual('http://p-memories.com/node/926791');
-            expect(data.image).toEqual('http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg');
+            expect(data).toHaveProperty('number', '01-001');
+            expect(data).toHaveProperty('url', 'http://p-memories.com/node/926791');
+            expect(data).toHaveProperty('image', 'http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg');
           }).then(nockDone)
         })
     });
@@ -607,15 +624,10 @@ KON 01-068
   });
 
   describe('loadSetAbbrIndex', () => {
-    const setAbbrIndexFixture = require(path.join(__dirname, '..', 'fixtures', 'setAbbrIndex.json'))
-    const mockFileStructure = {
-      [path.join(__dirname, '..', 'data', 'setAbbrIndex.json')]: setAbbrIndexFixture
-    }
     beforeEach(() => {
-      // require('fs').__setMockFiles(mockFileStructure)
+      require('fs').__setMockFiles(mockFileStructureA)
     })
-    // @TODO mock the fs call in this function and have it return a
-    // setAbbrIndex fixture instead of a live (possibly stale) setAbbrIndex
+
     it('should return a Promise', () => {
       let index = ripper.loadSetAbbrIndex()
       return expect(index).resolves.toStrictEqual(expect.anything())
@@ -630,7 +642,9 @@ KON 01-068
     })
 
     it('should reject with an Error if setAbbrIndex.json does not exist', () => {
+      require('fs').__setMockFiles(null)
       let index = ripper.loadSetAbbrIndex()
+      return expect(index).rejects.toThrow(/ENOENT/)
     })
   })
 
@@ -659,15 +673,17 @@ KON 01-068
   })
 
   describe('getSetUrlFromSetAbbr', () => {
+    beforeEach(() => {
+      require('fs').__setMockFiles(mockFileStructureA)
+    })
     it('Should return a promise', () => {
       let url = ripper.getSetUrlFromSetAbbr('HMK')
-      return expect(url).toBeInstanceOf(Promise);
+      return expect(url).toHaveProperty('then');
     })
     it('Should reject with an error if the Set Index does not exist', () => {
-      const index = jest.spyOn(ripper, 'loadSetAbbrIndex').mockImplementation(() => undefined)
+      require('fs').__setMockFiles(null)
       let url = ripper.getSetUrlFromSetAbbr('HMK')
-      expect(index).toHaveBeenCalledTimes(1)
-      return expect(url).rejects.toThrow('Set Abbreviation Index does not exist')
+      return expect(url).rejects.toThrow('ENOENT')
     })
     it('Should reject with an error which makes a suggestion when the user submits a set that doesnt exist', () => {
       let url = ripper.getSetUrlFromSetAbbr('OREIMO');
