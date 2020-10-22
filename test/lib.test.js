@@ -4,11 +4,11 @@ const path = require('path')
 const Promise = require('bluebird')
 const axios = require('axios')
 const nock = require('nock')
-const fs = require('fs')
+
+jest.mock('fs')
 
 nockBack = nock.back
 nockBack.fixtures = path.join(__dirname, '..', 'fixtures')
-nockBack.setMode('lockdown')
 
 
 let ripper
@@ -40,7 +40,7 @@ describe('P-Memories Ripper Library', () => {
     it(
       'should resolve { cardUrl, cardImageUrl } when given a card ID',
       () => {
-        return nockBack('SSSS.html.json').then(({ nockDone, context }) => {
+        return nockBack('lookupCardUrl.1.json').then(({ nockDone, context }) => {
           return ripper.lookupCardUrl('SSSS_01-001').then((card) => {
             expect(card).toHaveProperty('cardUrl', 'http://p-memories.com/node/926791')
             expect(card).toHaveProperty('cardImageUrl', 'http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg')
@@ -403,7 +403,7 @@ KON 01-068
       return expect(() => { ripper.ripCardData('') }).toThrow(/Got an empty string/)
     })
     it('Should get card data from a card URL', () => {
-      return nockBack('SSSS_01-001.html.json').then(({ nockDone }) => {
+      return nockBack('ripCardData.1.json').then(({ nockDone }) => {
         return ripper
           .ripCardData('http://p-memories.com/node/926791')
           .then((data) => {
@@ -437,7 +437,7 @@ KON 01-068
 
     it('should accept a card ID as first param', () => {
       // @TODO https://github.com/insanity54/precious-data/issues/3
-      return nockBack('SSSS_01-001.html.json')
+      return nockBack('ripCardData.2.json')
         .then(({ nockDone }) => {
           return ripper.ripCardData('SSSS 01-001').then((data) => {
             expect(typeof data).toBe('object');
@@ -452,7 +452,7 @@ KON 01-068
       'should accept a second parameter, a cardImageUrl, which will be used to determine whether or not to make a network request to rip card data.',
       () => {
         // https://github.com/insanity54/precious-data/issues/4
-        return nockBack('GPFN_01-030a.html.json')
+        return nockBack('ripCardData.3.json')
           .then(({ nockDone }) => {
             return ripper
               .ripCardData('http://p-memories.com/node/932341', '/images/product/GPFN/GPFN_01-030a.jpg')
@@ -472,7 +472,7 @@ KON 01-068
       () => {
           // this should happen elsewhere, before calling ripCardData in order to keep functions neat and tidy
           // https://github.com/insanity54/precious-data/issues/4
-        return nockBack('HMK_01-001.html.json').then(({ nockDone }) => {
+        return nockBack('rpCardData.4.json').then(({ nockDone }) => {
           let targetCardPath = path.join(__dirname, '..', 'data', 'HMK', '01', 'HMK_01-001.json')
           let creationTimeBefore = fs.statSync(targetCardPath).mtimeMs;
           let cd = ripper.ripCardData('http://p-memories.com/node/383031', 'http://p-memories.com/images/product/HMK/HMK_01-001.jpg');
@@ -607,21 +607,30 @@ KON 01-068
   });
 
   describe('loadSetAbbrIndex', () => {
-    // @TODO mock this function
+    const setAbbrIndexFixture = require(path.join(__dirname, '..', 'fixtures', 'setAbbrIndex.json'))
+    const mockFileStructure = {
+      [path.join(__dirname, '..', 'data', 'setAbbrIndex.json')]: setAbbrIndexFixture
+    }
+    beforeEach(() => {
+      // require('fs').__setMockFiles(mockFileStructure)
+    })
+    // @TODO mock the fs call in this function and have it return a
+    // setAbbrIndex fixture instead of a live (possibly stale) setAbbrIndex
     it('should return a Promise', () => {
       let index = ripper.loadSetAbbrIndex()
-      expect(index).toBeInstanceOf(Promise)
+      return expect(index).resolves.toStrictEqual(expect.anything())
     })
-    it('should resolve with an array of objects containing setAbbr and setUrl keys', () => {
 
+    it('should resolve with an array of objects containing setAbbr and setUrl keys', () => {
       let index = ripper.loadSetAbbrIndex()
-      expect(index).resolves.toContainEqual({
+      return expect(index).resolves.toContainEqual({
         setAbbr: 'HMK',
-        url: 'http://p-memories.com/card_product_list_page?field_title_nid=280695-%E5%88%9D%E9%9F%B3%E3%83%9F%E3%82%AF&s_flg=on'
+        setUrl: 'http://p-memories.com/card_product_list_page?field_title_nid=280695-%E5%88%9D%E9%9F%B3%E3%83%9F%E3%82%AF&s_flg=on'
       })
     })
-    it('should reject with an Error if setAbbrIndex.json does not exist', () => {
 
+    it('should reject with an Error if setAbbrIndex.json does not exist', () => {
+      let index = ripper.loadSetAbbrIndex()
     })
   })
 
