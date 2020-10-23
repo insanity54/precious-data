@@ -85,20 +85,27 @@ describe('P-Memories Ripper Library', () => {
   });
 
   describe('isLocalData', () => {
+    beforeEach(() => {
+      let cardData = require('../fixtures/HMK_01-001.json')
+      let mockFileStructureB = {
+        [path.join(__dirname, '..', 'data', 'HMK', '01', 'HMK_01-001.json')]: JSON.stringify(cardData)
+      }
+      require('fs').__setMockFiles(mockFileStructureB)
+    })
     it(
       'should return a promise with true for a card that exists on disk',
-      async () => {
-        let cardData = require('../fixtures/HMK_01-001.json');
-        let isLocalData = await ripper.isLocalData(cardData);
-        expect(isLocalData).toBe(true);
+      () => {
+        let p = ripper.isLocalData(cardData)
+        return expect(p).resolves.toBeTruthy()
       }
     );
     it(
       'should return a promise with false for a card that does not exist on disk',
-      async () => {
+      () => {
+        return nockBack()
         let cardData = require('../fixtures/BBQ_OZ-541.json');
         let isLocalData = await ripper.isLocalData(cardData);
-        expect(isLocalData).toBe(false);
+        return expect(isLocalData).toBe(false);
       }
     );
   });
@@ -282,7 +289,6 @@ KON 01-068
       () => {
         return ripper.ripSetData('http://p-memories.com/card_product_list_page?field_title_nid=241831-ClariS&s_flg=on')
           .then((data) => {
-            console.log(data)
             expect(Array.isArray(data)).toBe(true);
             expect(data.length).toBe(1);
             expect(typeof data[0].cardImageUrl).toBe('string');

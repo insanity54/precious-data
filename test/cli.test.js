@@ -16,7 +16,6 @@ describe('p-data.js CLI', () => {
     it(
       'should make a Set suggestion if the Set abbreviation doesnt have an exact match',
       () => {
-        console.log('WE OUT HERE')
         const parser = require('yargs')().command(require('../commands/rip'))
         return new Promise((resolve, reject) => {
           parser.parse('rip -s OREIMO', (err, argv, output) => {
