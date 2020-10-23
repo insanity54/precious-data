@@ -29,9 +29,19 @@ function readFile (filePath, opts) {
 const mocks = {
   __setMockFiles: __setMockFiles,
   createWriteStream: () => {
+    console.log('creating write stream!')
     return fsa.createWriteStream('/dev/null')
   },
   writeFile: (file, data, cb) => { return cb(null) },
+  writeFileSync: (file, opts) => {
+    // workaround for nockBack to access real fs
+    // and be able to write fixtures
+    // while rest of test is using mocked fs
+    let fixturePath = path.join(__dirname, '..', 'fixtures')
+    if (file.startsWith(fixturePath)) {
+      return fsa.writeFileSync(file, opts)
+    }
+  },
   promises: {
     mkdir: (path, opts) => { return new Promise.resolve() },
     readFile: readFile,

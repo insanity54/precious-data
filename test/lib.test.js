@@ -1,4 +1,3 @@
-
 const Ripper = require('../lib/ripper')
 const path = require('path')
 const Promise = require('bluebird')
@@ -22,15 +21,28 @@ beforeEach(() => {
 })
 
 describe('P-Memories Ripper Library', () => {
+  beforeEach(() => {
+    nockBack.setMode('record')
+  })
   describe('getCardUrlsFromSetPage', () => {
     it(
       'should accept a card number and setUrl and resolve an object with cardUrl and cardImageUrl',
       () => {
-        return ripper.getCardUrlsFromSetPage('01-050', 'http://p-memories.com/card_product_list_page?field_title_nid=919863-SSSS.GRIDMAN&s_flg=on').then((card) => {
-          expect(typeof card).toBe('object');
-          expect(card.cardUrl).toEqual('http://p-memories.com/node/926840');
-          expect(card.cardImageUrl).toEqual('http://p-memories.com/images/product/SSSS/SSSS_01-050.jpg');
-        });
+        return nockBack('getCardUrlsFromSetPage.json')
+          .then(({
+            nockDone,
+            context
+          }) => {
+            return ripper
+              .getCardUrlsFromSetPage('01-050', 'http://p-memories.com/card_product_list_page?field_title_nid=919863-SSSS.GRIDMAN&s_flg=on')
+              .then((card) => {
+                expect(typeof card).toBe('object')
+                expect(card).toHaveProperty('cardUrl', 'http://p-memories.com/node/926840')
+                expect(card).toHaveProperty('cardImageUrl', 'http://p-memories.com/images/product/SSSS/SSSS_01-050.jpg')
+                context.assertScopesFinished()
+              })
+              .then(nockDone)
+          })
       }
     )
   })
@@ -40,15 +52,22 @@ describe('P-Memories Ripper Library', () => {
       require('fs').__setMockFiles(mockFileStructureA)
     })
     it('should throw an error if not receiving a parameter', () => {
-      return expect(() => { ripper.lookupCardUrl() }).toThrow(/Got undefined/)
+      return expect(() => {
+        ripper.lookupCardUrl()
+      }).toThrow(/Got undefined/)
     })
     it('should throw an error if receiving an empty string', () => {
-      return expect(() => { ripper.lookupCardUrl('') }).toThrow(/Got an empty string/)
+      return expect(() => {
+        ripper.lookupCardUrl('')
+      }).toThrow(/Got an empty string/)
     })
     it(
       'should resolve { cardUrl, cardImageUrl } when given a card ID',
       () => {
-        return nockBack('lookupCardUrl.1.json').then(({ nockDone, context }) => {
+        return nockBack('lookupCardUrl.1.json').then(({
+          nockDone,
+          context
+        }) => {
           return ripper.lookupCardUrl('SSSS_01-001').then((card) => {
             expect(card).toHaveProperty('cardUrl', 'http://p-memories.com/node/926791')
             expect(card).toHaveProperty('cardImageUrl', 'http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg')
@@ -86,15 +105,16 @@ describe('P-Memories Ripper Library', () => {
 
   describe('isLocalData', () => {
     beforeEach(() => {
-      let cardData = require('../fixtures/HMK_01-001.json')
+      let data = require('../fixtures/HMK_01-001.json')
       let mockFileStructureB = {
-        [path.join(__dirname, '..', 'data', 'HMK', '01', 'HMK_01-001.json')]: JSON.stringify(cardData)
+        [path.join(__dirname, '..', 'data', 'HMK', '01', 'HMK_01-001.json')]: JSON.stringify(data)
       }
       require('fs').__setMockFiles(mockFileStructureB)
     })
     it(
       'should return a promise with true for a card that exists on disk',
       () => {
+        let cardData = require('../fixtures/HMK_01-001.json')
         let p = ripper.isLocalData(cardData)
         return expect(p).resolves.toBeTruthy()
       }
@@ -102,10 +122,9 @@ describe('P-Memories Ripper Library', () => {
     it(
       'should return a promise with false for a card that does not exist on disk',
       () => {
-        return nockBack()
-        let cardData = require('../fixtures/BBQ_OZ-541.json');
-        let isLocalData = await ripper.isLocalData(cardData);
-        return expect(isLocalData).toBe(false);
+        let fakeCardData = require('../fixtures/BBQ_OZ-541.json');
+        let p = ripper.isLocalData(fakeCardData);
+        return expect(p).resolves.toBeFalsy();
       }
     );
   });
@@ -124,11 +143,15 @@ http://p-memories.com/images/product/HMK/HMK_01-001.jpg
 KON 01-068
 
      */
-     it('should throw if receiving no parameter', () => {
-       return expect(() => { ripper.parseCardId() }).toThrow(/Got undefined/)
-     })
+    it('should throw if receiving no parameter', () => {
+      return expect(() => {
+        ripper.parseCardId()
+      }).toThrow(/Got undefined/)
+    })
     it('should throw an error if receiving a string that does match the required format', () => {
-      return expect(() => { ripper.parseCardId('taco bell') }).toThrow(/cardId is not valid/)
+      return expect(() => {
+        ripper.parseCardId('taco bell')
+      }).toThrow(/cardId is not valid/)
     })
     it(
       'should return an object with setAbbr, release, number, and num',
@@ -228,21 +251,21 @@ KON 01-068
 
     it(
       'should handle a cardID with a space between the setAbbr and the release',
-    () => {
-      let p = ripper.parseCardId('HMK 02-003')
-      expect(p.setAbbr).toEqual('HMK')
-    })
+      () => {
+        let p = ripper.parseCardId('HMK 02-003')
+        expect(p.setAbbr).toEqual('HMK')
+      })
 
     it('should handle GPFN P-004a',
-    () => {
-      let p = ripper.parseCardId('GPFN P-004a')
-      expect(p.setAbbr).toEqual('GPFN')
-      expect(p.release).toEqual('P')
-      expect(p.number).toEqual('P-004a')
-      expect(p.num).toEqual('004')
-      expect(p.id).toEqual('GPFN P-004a')
-      expect(p.variation).toEqual('a')
-    })
+      () => {
+        let p = ripper.parseCardId('GPFN P-004a')
+        expect(p.setAbbr).toEqual('GPFN')
+        expect(p.release).toEqual('P')
+        expect(p.number).toEqual('P-004a')
+        expect(p.num).toEqual('004')
+        expect(p.id).toEqual('GPFN P-004a')
+        expect(p.variation).toEqual('a')
+      })
 
     it('should handle GPFN_P-004a', () => {
       let p = ripper.parseCardId('GPFN_P-004a');
@@ -259,15 +282,25 @@ KON 01-068
     it(
       'should return a list of all set URLs found on p-memories.com',
       () => {
-        return ripper.getSetUrls().then((setList) => {
-          expect(Array.isArray(setList)).toBe(true);
-          expect(setList.length).toBeGreaterThanOrEqual(94);
-          expect(setList).toEqual(expect.arrayContaining([
-            'http://p-memories.com/card_product_list_page?field_title_nid=241831-ClariS&s_flg=on',
-            'http://p-memories.com/card_product_list_page?field_title_nid=919863-SSSS.GRIDMAN&s_flg=on',
-            'http://p-memories.com/card_product_list_page?field_title_nid=280695-%E5%88%9D%E9%9F%B3%E3%83%9F%E3%82%AF&s_flg=on'
-          ]));
-        });
+        return nockBack('getSetUrls.json')
+          .then(({
+            nockDone,
+            context
+          }) => {
+            return ripper.getSetUrls()
+              .then((setList) => {
+                expect(setList).toBeInstanceOf(Array)
+                expect(setList.length).toBeGreaterThanOrEqual(94)
+                expect(setList[0]).toEqual(expect.stringMatching(/http:\/\/p-memories.com\/card_product_list_page\?/))
+                expect(setList).toEqual(expect.arrayContaining([
+                  'http://p-memories.com/card_product_list_page?field_title_nid=241831-ClariS&s_flg=on',
+                  'http://p-memories.com/card_product_list_page?field_title_nid=919863-SSSS.GRIDMAN&s_flg=on',
+                  'http://p-memories.com/card_product_list_page?field_title_nid=280695-%E5%88%9D%E9%9F%B3%E3%83%9F%E3%82%AF&s_flg=on'
+                ]));
+                context.assertScopesFinished()
+              })
+              .then(nockDone)
+          })
       }
     );
   });
@@ -276,51 +309,81 @@ KON 01-068
 
 
   describe('ripSetData', () => {
-    it('should accept a setURL as parameter', () => {
-      let promise = ripper.ripSetData('http://p-memories.com/card_product_list_page?field_title_nid=919863-SSSS.GRIDMAN&s_flg=on')
-      expect(promise).resolves.toStrictEqual(expect.anything())
+    it('should accept a setURL as parameter and return a promise', () => {
+      return nockBack('ripSetData.5.json')
+        .then(({ nockDone, context }) => {
+          let promise = ripper.ripSetData('http://p-memories.com/card_product_list_page?field_title_nid=919863-SSSS.GRIDMAN&s_flg=on')
+          return expect(promise).resolves.toStrictEqual(expect.anything())
+        })
     })
     it('should throw if not receiving a setURL as param', () => {
       let promise = ripper.ripSetData()
       return expect(promise).rejects.toThrow(/param/)
     })
-    it(
-      'should return an array of objects containing cardUrl and cardImageUrl',
-      () => {
-        return ripper.ripSetData('http://p-memories.com/card_product_list_page?field_title_nid=241831-ClariS&s_flg=on')
-          .then((data) => {
-            expect(Array.isArray(data)).toBe(true);
-            expect(data.length).toBe(1);
-            expect(typeof data[0].cardImageUrl).toBe('string');
-            expect(typeof data[0].cardUrl).toBe('string');
-          });
+    it('should return an array of objects containing cardUrl and cardImageUrl', () => {
+        return nockBack('ripSetData.1.json')
+          .then(({ nockDone, context }) => {
+            return ripper
+              .ripSetData('http://p-memories.com/card_product_list_page?field_title_nid=241831-ClariS&s_flg=on')
+              .then((data) => {
+                expect(data).toBeArray()
+                expect(data.length).toBe(1)
+                expect(data[0].cardImageUrl).toBeString()
+                expect(data[0].cardUrl).toBeString()
+                context.assertScopesFinished()
+              })
+              .then(nockDone)
+          })
       }
-    );
-
-    it('should rip a set which contains more than one page', function () {
-      return ripper.ripSetData('http://p-memories.com/card_product_list_page?field_title_nid=280695-%E5%88%9D%E9%9F%B3%E3%83%9F%E3%82%AF&s_flg=on')
-        .then((data) => {
-          expect(Array.isArray(data)).toBe(true);
-          expect(data.length).toBeGreaterThanOrEqual(403);
-        });
-    });
-
-    it('should cope with a relative p-memories.com URL', function () {
-      return ripper.ripSetData('/card_product_list_page?field_title_nid=241831-ClariS&s_flg=on')
-        .then((data) => {
-          expect(Array.isArray(data)).toBe(true);
-          expect(data.length).toBe(1);
-        });
-    });
-
-    it('should download madoka release 03', function () {
-      return ripper.ripSetData('http://p-memories.com/card_product_list_page?field_title_nid=313372-%E5%8A%87%E5%A0%B4%E7%89%88+%E9%AD%94%E6%B3%95%E5%B0%91%E5%A5%B3%E3%81%BE%E3%81%A9%E3%81%8B%E2%98%86%E3%83%9E%E3%82%AE%E3%82%AB&s_flg=on')
-        .then((data) => {
-          expect(Array.isArray(data)).toBe(true);
-          expect(data.length).toBeGreaterThan(1);
-        });
+    )
+    it('should rip a set which contains more than one page', () => {
+      return nockBack('ripSetData.2.json')
+        .then(({
+          nockDone,
+          context
+        }) => {
+          return ripper.ripSetData('http://p-memories.com/card_product_list_page?field_title_nid=280695-%E5%88%9D%E9%9F%B3%E3%83%9F%E3%82%AF&s_flg=on')
+            .then((data) => {
+              expect(data).toBeArray()
+              expect(data.length).toBeGreaterThanOrEqual(403);
+              context.assertScopesFinished()
+            })
+            .then(nockDone)
+        })
     })
-  });
+
+    it('should cope with a relative p-memories.com URL', () => {
+      return nockBack('ripSetData.3.json')
+        .then(({
+          nockDone,
+          context
+        }) => {
+          return ripper.ripSetData('/card_product_list_page?field_title_nid=241831-ClariS&s_flg=on')
+            .then((data) => {
+              expect(data).toBeInstanceOf(Array)
+              expect(data.length).toBe(1)
+              context.assertScopesFinished()
+            })
+            .then(nockDone)
+        })
+    })
+
+    it('should download madoka release 03', () => {
+      return nockBack('ripSetData.4.json')
+        .then(({
+          nockDone,
+          context
+        }) => {
+          return ripper.ripSetData('http://p-memories.com/card_product_list_page?field_title_nid=313372-%E5%8A%87%E5%A0%B4%E7%89%88+%E9%AD%94%E6%B3%95%E5%B0%91%E5%A5%B3%E3%81%BE%E3%81%A9%E3%81%8B%E2%98%86%E3%83%9E%E3%82%AE%E3%82%AB&s_flg=on')
+            .then((data) => {
+              expect(data).toBeInstanceOf(Array);
+              expect(data.length).toBeGreaterThan(1);
+              context.assertScopesFinished()
+            })
+            .then(nockDone)
+        })
+    })
+  })
 
   describe('isLocalCard', () => {
     it(
@@ -418,14 +481,21 @@ KON 01-068
 
   describe('ripCardData', () => {
     it('Should throw an error if not receiving any param', () => {
-      return expect(() => { ripper.ripCardData() }).toThrow(/Got undefined/)
+      return expect(() => {
+        ripper.ripCardData()
+      }).toThrow(/Got undefined/)
     })
     it('Should throw an error if receiving an empty string', () => {
-      return expect(() => { ripper.ripCardData('') }).toThrow(/Got an empty string/)
+      return expect(() => {
+        ripper.ripCardData('')
+      }).toThrow(/Got an empty string/)
     })
     it('Should accept a card URL and resolve to card data', () => {
       return nockBack('ripCardData.1.json')
-        .then(({ nockDone, context }) => {
+        .then(({
+          nockDone,
+          context
+        }) => {
           return ripper
             .ripCardData('http://p-memories.com/node/926791')
             .then((data) => {
@@ -454,14 +524,16 @@ KON 01-068
               expect(data.release).toEqual('01');
               context.assertScopesFinished()
             })
-          .then(nockDone)
-      })
+            .then(nockDone)
+        })
     });
 
     it('should accept a card ID as first param', () => {
       // @TODO https://github.com/insanity54/precious-data/issues/3
       return nockBack('ripCardData.2.json')
-        .then(({ nockDone }) => {
+        .then(({
+          nockDone
+        }) => {
           return ripper.ripCardData('SSSS 01-001').then((data) => {
             expect(typeof data).toBe('object');
             expect(data).toHaveProperty('number', '01-001');
@@ -476,7 +548,9 @@ KON 01-068
       () => {
         // https://github.com/insanity54/precious-data/issues/4
         return nockBack('ripCardData.3.json')
-          .then(({ nockDone }) => {
+          .then(({
+            nockDone
+          }) => {
             return ripper
               .ripCardData('http://p-memories.com/node/932341', '/images/product/GPFN/GPFN_01-030a.jpg')
               .then((data) => {
@@ -493,9 +567,11 @@ KON 01-068
     xit(
       'should return a promise which rejects with an error if receiving a URL to a card which has already been downloaded',
       () => {
-          // this should happen elsewhere, before calling ripCardData in order to keep functions neat and tidy
-          // https://github.com/insanity54/precious-data/issues/4
-        return nockBack('rpCardData.4.json').then(({ nockDone }) => {
+        // this should happen elsewhere, before calling ripCardData in order to keep functions neat and tidy
+        // https://github.com/insanity54/precious-data/issues/4
+        return nockBack('rpCardData.4.json').then(({
+          nockDone
+        }) => {
           let targetCardPath = path.join(__dirname, '..', 'data', 'HMK', '01', 'HMK_01-001.json')
           let creationTimeBefore = fs.statSync(targetCardPath).mtimeMs;
           let cd = ripper.ripCardData('http://p-memories.com/node/383031', 'http://p-memories.com/images/product/HMK/HMK_01-001.jpg');
@@ -542,8 +618,7 @@ KON 01-068
   });
 
   describe('downloadImage', () => {
-    beforeEach(() => {
-    })
+    beforeEach(() => {})
     let correctImagePath = path.join(
       __dirname,
       '..',
@@ -655,8 +730,7 @@ KON 01-068
   })
 
   describe('getSetSuggestion', () => {
-    const setAbbrIndex = [
-      {
+    const setAbbrIndex = [{
         setAbbr: 'oreimo',
         setUrl: 'http://example.com'
       },
@@ -669,7 +743,9 @@ KON 01-068
       let suggestions = ripper.getSetSuggestion(setAbbrIndex, 'oreimo')
     })
     it('Should throw if not receiving required params', () => {
-      expect(() => { ripper.getSetSuggestion() }).toThrow()
+      expect(() => {
+        ripper.getSetSuggestion()
+      }).toThrow()
     })
     it('Should return an {Array} of suggestions', () => {
       let suggestions = ripper.getSetSuggestion(setAbbrIndex, 'OREIMO')
@@ -720,7 +796,9 @@ KON 01-068
 
   describe('getSetAbbrFromImageUrl', () => {
     it('should throw if not receiving param', () => {
-      expect(() => { ripper.getSetAbbrFromImageUrl() }).toThrow(/undefined/)
+      expect(() => {
+        ripper.getSetAbbrFromImageUrl()
+      }).toThrow(/undefined/)
     })
     it(
       'Should return SSSS when receiving param http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg',
