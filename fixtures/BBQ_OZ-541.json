@@ -1,0 +1,20 @@
+{
+  "setAbbr": "BBQ",
+  "setName": "fake set",
+  "number": "QZ-541",
+  "rarity": "SR",
+  "name": "blah",
+  "cardType": "CH",
+  "colour": "RED",
+  "generationCost": "1",
+  "usageCost": "4",
+  "ap": "4000",
+  "dp": "3000",
+  "text": "",
+  "flavorText": "-",
+  "url": "",
+  "release": "QZ",
+  "num": "541",
+  "id": "BBQ_QZ-541",
+  "image": ""
+}
