@@ -342,7 +342,8 @@ KON 01-068
           nockDone,
           context
         }) => {
-          return ripper.ripSetData('http://p-memories.com/card_product_list_page?field_title_nid=280695-%E5%88%9D%E9%9F%B3%E3%83%9F%E3%82%AF&s_flg=on')
+          return ripper
+            .ripSetData('http://p-memories.com/card_product_list_page?field_title_nid=280695-%E5%88%9D%E9%9F%B3%E3%83%9F%E3%82%AF&s_flg=on')
             .then((data) => {
               expect(data).toBeArray()
               expect(data.length).toBeGreaterThanOrEqual(403);
@@ -530,16 +531,21 @@ KON 01-068
 
     it('should accept a card ID as first param', () => {
       // @TODO https://github.com/insanity54/precious-data/issues/3
+      require('fs').__setMockFiles(mockFileStructureA)
       return nockBack('ripCardData.2.json')
         .then(({
-          nockDone
+          nockDone,
+          context
         }) => {
-          return ripper.ripCardData('SSSS 01-001').then((data) => {
-            expect(typeof data).toBe('object');
-            expect(data).toHaveProperty('number', '01-001');
-            expect(data).toHaveProperty('url', 'http://p-memories.com/node/926791');
-            expect(data).toHaveProperty('image', 'http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg');
-          }).then(nockDone)
+          return ripper
+            .ripCardData('SSSS 01-001')
+            .then((data) => {
+              expect(data).toBeObject()
+              expect(data).toHaveProperty('number', '01-001')
+              expect(data).toHaveProperty('url', 'http://p-memories.com/node/926791')
+              expect(data).toHaveProperty('image', 'http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg')
+              context.assertScopesFinished()
+            }).then(nockDone)
         })
     });
 
@@ -582,13 +588,18 @@ KON 01-068
     );
 
     it('should cope with a relative P-memories URL', () => {
-      return ripper.ripCardData('/node/926791')
-        .then((data) => {
-          expect(typeof data).toBe('object');
-          expect(data.number).toEqual('01-001');
-          expect(data.url).toEqual('http://p-memories.com/node/926791');
-        });
-    });
+      return nockBack('ripCardData.5.json')
+        .then(({ nockDone, context }) => {
+          return ripper.ripCardData('/node/926791')
+            .then((data) => {
+              expect(typeof data).toBe('object');
+              expect(data.number).toEqual('01-001');
+              expect(data.url).toEqual('http://p-memories.com/node/926791');
+              context.assertScopesFinished()
+            })
+            .then(nockDone)
+          })
+        })
 
   });
 
@@ -630,38 +641,50 @@ KON 01-068
     it(
       'Should accept a card URL and download the card image and write it to the correct folder',
       () => {
-
-        let cardUrl = 'http://p-memories.com/node/926791';
-        return ripper
-          .downloadImage(cardUrl)
-          .then((imagePath) => {
-            expect(typeof imagePath).toBe('string');
-            expect(imagePath).toEqual(correctImagePath);
-          });
+        return nockBack('downloadImage.1.json')
+          .then(({ nockDone, context }) => {
+            return ripper
+              .downloadImage('http://p-memories.com/node/926791')
+              .then((imagePath) => {
+                expect(imagePath).toBeString()
+                expect(imagePath).toEqual(correctImagePath)
+                context.assertScopesFinished()
+              })
+              .then(nockDone)
+          })
       }
     );
     it(
       'Should download a card image and place it in the correct folder',
       () => {
-        let imageUrl = 'http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg';
-        return ripper
-          .downloadImage(imageUrl)
-          .then((imagePath) => {
-            expect(typeof imagePath).toBe('string');
-            expect(imagePath).toEqual(correctImagePath);
-          });
+        return nockBack('downloadImage.2.json')
+          .then(({ nockDone, context }) => {
+            return ripper
+              .downloadImage('http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg')
+              .then((imagePath) => {
+                expect(imagePath).toBeString()
+                expect(imagePath).toEqual(correctImagePath)
+                context.assertScopesFinished()
+              })
+              .then(nockDone)
+            })
       }
     );
     it(
       'should accept a card data object, download the image specified within, and place it in the correct folder',
       () => {
-        let cardData = require(path.join(__dirname, '..', 'fixtures', 'SSSS_01-001.json'));
-        return ripper
-          .downloadImage(cardData)
-          .then((imagePath) => {
-            expect(typeof imagePath).toBe('string');
-            expect(imagePath).toEqual(correctImagePath);
-          });
+        return nockBack('downloadImage.3.json')
+          .then(({ nockDone, context }) => {
+            let cardData = require(path.join(__dirname, '..', 'fixtures', 'HMK_01-001.json'));
+            return ripper
+              .downloadImage(cardData)
+              .then((imagePath) => {
+                expect(imagePath).toBeString()
+                expect(imagePath).toEqual(path.join(__dirname, '..', 'data', 'HMK', '01', 'HMK_01-001.jpg'))
+                context.assertScopesFinished()
+              })
+              .then(nockDone)
+          })
       }
     )
   });
@@ -814,58 +837,110 @@ KON 01-068
     it(
       'Should accept a set URL and return the image URL for the first card in the set',
       () => {
-        return ripper.getFirstCardImageUrl('http://p-memories.com/card_product_list_page?field_title_nid=919863-SSSS.GRIDMAN&s_flg=on')
-          .then((imageUrl) => {
-            expect(imageUrl).toEqual('http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg');
-          });
-      }
-    )
-  });
+        return nockBack('getFirstCardImageUrl.1.json')
+          .then(({ nockDone, context }) => {
+            return ripper
+              .getFirstCardImageUrl('http://p-memories.com/card_product_list_page?field_title_nid=919863-SSSS.GRIDMAN&s_flg=on')
+              .then((imageUrl) => {
+                expect(imageUrl).toEqual('http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg')
+                context.assertScopesFinished()
+              })
+              .then(nockDone)
+      })
+    })
 
-  xdescribe('getImageUrlFromEachSet', () => {
-    // @TODO I don't know how to do this without mocking every 100+ set pages, which doesn't seem like a good idea
-    it(
-      'Should accept no parameters and return an array of objects with sampleCardUrl and setUrl k/v',
-      () => {
-        return ripper.getImageUrlFromEachSet()
-          .then((imageUrls) => {
-            let indexPath = path.join(__dirname, '..', 'data', 'setAbbrIndex.json');
-            expect(Array.isArray(imageUrls)).toBe(true);
-            expect(imageUrls.length).toBeGreaterThan(94);
-            expect(typeof imageUrls[0]).toBe('object');
-            expect(typeof imageUrls[0].setUrl).toBe('string');
-            expect(typeof imageUrls[0].sampleCardUrl).toBe('string');
-          })
-      }
-    );
-  });
-
-  describe('createSetAbbreviationIndex', () => {
-    it('should create setAbbrIndex.json in the data folder', () => {
-      return ripper.createSetAbbreviationIndex()
-        .then((imageUrls) => {
-          let indexPath = path.join(__dirname, '..', 'data', 'setAbbrIndex.json');
-          let setAbbrIndex = require(indexPath);
-          expect(Array.isArray(setAbbrIndex)).toBe(true);
-          expect(typeof setAbbrIndex[0].setUrl).toBe('string');
-          expect(typeof setAbbrIndex[0].setAbbr).toBe('string');
-        });
+    it('should return normalized URLs', () => {
+      return nockBack('getFirstCardImageUrl.2.json')
+        .then(({ nockDone, context }) => {
+          return ripper
+            .getFirstCardImageUrl('http://p-memories.com/card_product_list_page?field_title_nid=4539-%E3%82%AA%E3%82%AA%E3%82%AB%E3%83%9F%E3%81%95%E3%82%93%E3%81%A8%E4%B8%83%E4%BA%BA%E3%81%AE%E4%BB%B2%E9%96%93%E3%81%9F%E3%81%A1&s_flg=on')
+            .then(imageUrl => {
+              expect(imageUrl).toEqual('http://p-memories.com/images/product/ookami/ookami_01-001.jpg')
+              context.assertScopesFinished()
+            })
+            .then(nockDone)
+        })
     })
   })
 
-  describe('saveCardData', () => {
-    it('Should accept an object and return a promise', () => {
-      let cardData = require('../fixtures/HMK_01-001.json');
-      return expect(ripper.saveCardData(cardData)).resolves.toStrictEqual(expect.anything())
-    })
-    it('Should resolve to be an {Array} containing paths of image & json on disk', () => {
-      let cardData = require('../fixtures/HMK_01-001.json');
-      let promise = ripper.saveCardData(cardData)
-      return promise.then((res) => {
-        const [imagePath, jsonPath] = res
-        expect(imagePath).toBe(path.join(__dirname, '..', 'data', 'HMK', '01', 'HMK_01-001.jpg'))
-        expect(jsonPath).toBe(path.join(__dirname, '..', 'data', 'HMK', '01', 'HMK_01-001.json'))
+
+  describe('getImageUrlFromEachSet', () => {
+    let mockedGetSetUrls
+    beforeEach(() => {
+      mockedGetSetUrls = jest.spyOn(ripper, 'getSetUrls').mockImplementation(() => {
+        return new Promise.resolve([
+          'http://p-memories.com/card_product_list_page?field_title_nid=280695-%E5%88%9D%E9%9F%B3%E3%83%9F%E3%82%AF&s_flg=on',
+          'http://p-memories.com/card_product_list_page?field_title_nid=919863-SSSS.GRIDMAN&s_flg=on',
+          'http://p-memories.com/card_product_list_page?field_title_nid=931488-%E3%82%AC%E3%83%BC%E3%83%AB%E3%82%BA%EF%BC%86%E3%83%91%E3%83%B3%E3%83%84%E3%82%A1%E3%83%BC%E3%80%80%E6%9C%80%E7%B5%82%E7%AB%A0&s_flg=on'
+        ])
       })
+    })
+    afterEach(() => {
+      mockedGetSetUrls.mockRestore()
+    })
+    it(
+      'Should accept no parameters and return an array of objects with sampleCardUrl and setUrl k/v',
+      () => {
+        return nockBack('getImageUrlFromEachSet.1.json')
+          .then(({ nockDone, context }) => {
+             // mock the size of the card_product_list_page to make the test fast
+            return ripper.getImageUrlFromEachSet()
+              .then((imageUrls) => {
+                let indexPath = path.join(__dirname, '..', 'data', 'setAbbrIndex.json')
+                expect(imageUrls).toBeArray()
+                expect(imageUrls[0]).toBeObject()
+                expect(imageUrls[0].setUrl).toBeString()
+                expect(imageUrls[0].sampleCardUrl).toBeString()
+                context.assertScopesFinished()
+              })
+              .then(nockDone)
+          })
+      }, 1000*60*5);
+  });
+
+  describe('createSetAbbreviationIndex', () => {
+    let mockedGetSetUrls
+    beforeEach(() => {
+      mockedGetSetUrls = jest.spyOn(ripper, 'getSetUrls').mockImplementation(() => {
+        return new Promise.resolve([
+          'http://p-memories.com/card_product_list_page?field_title_nid=280695-%E5%88%9D%E9%9F%B3%E3%83%9F%E3%82%AF&s_flg=on',
+          'http://p-memories.com/card_product_list_page?field_title_nid=919863-SSSS.GRIDMAN&s_flg=on',
+          'http://p-memories.com/card_product_list_page?field_title_nid=931488-%E3%82%AC%E3%83%BC%E3%83%AB%E3%82%BA%EF%BC%86%E3%83%91%E3%83%B3%E3%83%84%E3%82%A1%E3%83%BC%E3%80%80%E6%9C%80%E7%B5%82%E7%AB%A0&s_flg=on'
+        ])
+      })
+    })
+    afterEach(() => {
+      mockedGetSetUrls.mockRestore()
+    })
+    it('should create setAbbrIndex.json in the data folder', () => {
+      return nockBack('createSetAbbreviationIndex.1.json')
+        .then(({ nockDone, context }) => {
+          return ripper.createSetAbbreviationIndex()
+            .then((setAbbrIndexPath) => {
+              expect(setAbbrIndexPath).toEqual(path.join(__dirname, '..', 'data', 'setAbbrIndex.json'))
+              context.assertScopesFinished()
+            })
+            .then(nockDone)
+        })
+    }, 1000*60*3)
+  })
+
+  describe('saveCardData', () => {
+    it('Should accept an object and resolve to be an {Array} containing paths of image & json on disk', () => {
+      return nockBack('saveCardData.1.json')
+        .then(({ nockDone, context }) => {
+          let cardData = require('../fixtures/HMK_01-001.json');
+            return ripper
+              .saveCardData(cardData)
+              .then((savePaths) => {
+                expect(savePaths).toBeArray();
+                const [imagePath, jsonPath] = savePaths
+                expect(imagePath).toBe(path.join(__dirname, '..', 'data', 'HMK', '01', 'HMK_01-001.jpg'))
+                expect(jsonPath).toBe(path.join(__dirname, '..', 'data', 'HMK', '01', 'HMK_01-001.json'))
+                context.assertScopesFinished()
+              })
+              .then(nockDone)
+        })
     })
   })
 })

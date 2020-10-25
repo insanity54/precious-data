@@ -29,7 +29,6 @@ function readFile (filePath, opts) {
 const mocks = {
   __setMockFiles: __setMockFiles,
   createWriteStream: () => {
-    console.log('creating write stream!')
     return fsa.createWriteStream('/dev/null')
   },
   writeFile: (file, data, cb) => { return cb(null) },
@@ -45,7 +44,9 @@ const mocks = {
   promises: {
     mkdir: (path, opts) => { return new Promise.resolve() },
     readFile: readFile,
-    writeFile: (file, data) => { return new Promise.resolve() }
+    writeFile: (file, data) => {
+      return new Promise.resolve()
+    }
   }
 }
 
