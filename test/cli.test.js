@@ -2,15 +2,97 @@ const fs = require('fs');
 const path = require('path');
 const cliPath = path.join(__dirname, '..', 'p-data.js');
 const Promise = require('bluebird');
+const yargsParser = require('yargs-parser')
+const pify = require('pify')
+const glob = require('glob')
+const spawn = require('child_process').spawn
+const nock = require('nock')
+jest.mock('fs')
+
+
+nockBack = nock.back
+nockBack.fixtures = path.join(__dirname, '..', 'fixtures')
+
+
+
+// greets https://github.com/kentcdodds/split-guide/blob/fb4b2a2ebc1fb8c3c010c2af1318861b8bb1bb13/src/bin/index.test.js
+function runCLIAndAssertFileOutput(args, cwd) {
+  // const {
+  //   exercisesDir = './exercises', exercisesFinalDir = './exercises-final'
+  // } = yargsParser(args)
+  return runCli(args, cwd)
+    .then((stdout) => {
+      expect(stdout).toMatchSnapshot()
+    })
+    .catch((e) => {
+      console.error('runCLI error')
+      console.error(e)
+    })
+}
+
+
+function runCli(args = '', cwd = process.cwd()) {
+  const isRelative = cwd[0] !== '/'
+  if (isRelative) {
+    cwd = path.resolve(__dirname, cwd)
+  }
+
+  return new Promise((resolve, reject) => {
+    let stdout = ''
+    let stderr = ''
+    const command = path.join(__dirname, '..', 'p-data.js')
+    const opts = {
+      cwd: cwd
+    }
+    const child = spawn(command, args.split(' '), opts)
+
+    child.on('error', error => {
+      reject(error)
+    })
+
+    child.stdout.on('data', data => {
+      stdout += data.toString()
+    })
+
+    child.stderr.on('data', data => {
+      stderr += data.toString()
+    })
+
+    child.on('close', () => {
+      if (stderr) {
+        reject(stderr)
+      } else {
+        resolve(stdout)
+      }
+    })
+  })
+}
 
 
 describe('p-data.js CLI', () => {
+  describe('list subcommand', () => {
+    it('should list all sets listed on p-memories.com', () => {
+      return nockBack('cliList.1.json')
+        .then(({ nockDone, context }) => {
+          return runCLIAndAssertFileOutput('list --type setNames --json', path.resolve(__dirname, '../'))
+            .then(() => {
+              context.assertScopesFinished()
+            })
+            .then(nockDone)
+        })
+    })
+  })
   describe('index subcommand', () => {
-    it('should write index.json to the data directory', () => {
-      let program = cli.parse(['node', './p-data.js', 'index'])
-      expect(typeof program).toBe('object');
-      expect(program.index).toBeDefined();
-    });
+    it('should run without failure', () => {
+      return runCLIAndAssertFileOutput('index', path.resolve(__dirname, '../'))
+    })
+    it('should create a setAbbrIndex.json file', () => {
+      require('fs').__setMock
+      return runCli('index', path.resolve(__dirname, '../'))
+        .then((stdout) => {
+
+        })
+    })
   });
   describe('rip subcommand', () => {
     it(
@@ -50,13 +132,13 @@ describe('p-data.js CLI', () => {
       expect(program).toBeDefined();
       expect(program.set).toEqual('MMDK');
 
-        // .then((res) => {
-        //   assert.isString(res);
-        //   assert.match(res, /劇場版 魔法少女まどか☆マギカ/);
-        //   const
-        // })
+      // .then((res) => {
+      //   assert.isString(res);
+      //   assert.match(res, /劇場版 魔法少女まどか☆マギカ/);
+      //   const
+      // })
     })
-    xit('should have silent output when called with -q flag', function () {
+    xit('should have silent output when called with -q flag', function() {
 
     })
 

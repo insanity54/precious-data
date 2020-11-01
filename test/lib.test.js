@@ -278,6 +278,43 @@ KON 01-068
     });
   });
 
+  describe('getSets', () => {
+    it('should resolve a list objects which contains {String} setUrl and {String} setName', () => {
+      return nockBack('getSets.1.json')
+        .then(({ nockDone, context }) => {
+          return ripper.getSets()
+            .then((sets) => {
+              expect(sets).toEqual(expect.arrayContaining([
+                {
+                  setUrl: 'http://p-memories.com/card_product_list_page?field_title_nid=919863-SSSS.GRIDMAN&s_flg=on',
+                  setName: 'SSSS.GRIDMAN'
+                }
+              ]))
+              context.assertScopesFinished()
+            })
+            .then(nockDone)
+        })
+    })
+  })
+
+  describe('getSetNames', () => {
+    it('should resolve a list of {String} setNames', () => {
+      return nockBack('getSetNames.1.json')
+        .then(({ nockDone, context }) => {
+          return ripper.getSetNames()
+            .then((names) => {
+              expect(names).toEqual(expect.arrayContaining([
+                'SSSS.GRIDMAN',
+                '初音ミク',
+                'ハロー！！きんいろモザイク'
+              ]))
+              context.assertScopesFinished()
+            })
+            .then(nockDone)
+        })
+    })
+  })
+
   describe('getSetUrls', () => {
     it(
       'should return a list of all set URLs found on p-memories.com',
