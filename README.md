@@ -30,6 +30,8 @@ As future updates and additions to P-Memories cards are anticipated, the ripper 
 
     npm run rip
 
+Card data is downloaded to the `data` folder
+
 #### Advanced Usage:
 
 Advanced usage of the CLI tool `p-data.js` allows the user to download specific sets, specific URLs, or all precious-memories cards in existence. The `-i` (incremental) flag can significantly reduce network usage by only downloading card data which has not already been downloaded.
