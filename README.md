@@ -20,6 +20,12 @@ For example, cards belonging to the Hatsune Miku card set will be saved in the a
 
 As future updates and additions to P-Memories cards are anticipated, the ripper is smart enough to merge official data with unofficial translations. This means that the card JSON files are safe to edit manually, and work will not be lost during future data rips.
 
+#### Installation:
+
+    git clone https://github.com/insanity54/precious-data
+    cd precious-data
+    npm install
+
 #### Usage:
 
     npm run rip
