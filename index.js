@@ -1,4 +1,5 @@
 
+const path = require('path');
 const globby = require('globby');
 
 const exp = {
@@ -7,7 +8,7 @@ const exp = {
 };
 
 function collectCards() {
-	const cardPaths = globby.sync('./data/**/*.json')
+	const cardPaths = globby.sync(path.join(__dirname, './data/**/*.json'));
 
 	let data = [];
 
@@ -20,7 +21,6 @@ function collectCards() {
 
 	return data
 }
-
 
 
 module.exports = exp
