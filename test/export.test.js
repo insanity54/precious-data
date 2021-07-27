@@ -3,10 +3,11 @@ const toBeType = require('jest-tobetype');
 expect.extend(toBeType)
 
 describe('precious-data exports', () => {
-  it('should export an object containg cards, version, and sets properties', () => {
+  it('should export an object containg cards, version, sets properties, and parsers', () => {
     expect(preciousData).toHaveProperty('version');
     expect(preciousData).toHaveProperty('cards');
     expect(preciousData).toHaveProperty('sets');
+    expect(preciousData).toHaveProperty('parsers')
   })
   it('should have a cards property that is an Array', () => {
     expect(preciousData.cards).toBeType('array');

@@ -6,7 +6,8 @@ const fs = require('fs');
 const exp = {
 	cards: collectCards(),
 	sets: collectSets(),
-	version: require('./package.json').version
+	version: require('./package.json').version,
+	parsers: require('./lib/parsers')
 };
 
 function getCardImagePath(cardJsonPath) {
