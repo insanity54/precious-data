@@ -6,7 +6,7 @@
   "scripts": {
     "rip": "DEBUG=precious-data ./p-data.js rip -a",
     "dev": "npx supervisor index",
-    "jsdoc": "jsdoc-to-markdown ./lib/*.js > ./docs/index.md",
+    "jsdoc": "jsdoc2md ./lib/*.js > ./docs/index.md",
     "test": "NOCK_BACK_MODE=lockdown jest --verbose",
     "fixtures": "NOCK_BACK_MODE=record jest",
     "coverage": "NOCK_BACK_MODE=lockdown jest --coverage && coveralls < coverage/lconv.info"
@@ -27,6 +27,7 @@
     "coveralls": "^3.1.1",
     "jest": "^26.6.0",
     "jest-extended": "^0.11.5",
+    "jsdoc-to-markdown": "^7.0.1",
     "nock": "^13.0.4",
     "nock-record": "^0.3.9"
   },

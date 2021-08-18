@@ -115,9 +115,8 @@ buildCardDataPath({"set": "HMK", "number": "01-001", ... })
 ### ripper.downloadImage(targetUrl) ⇒ <code>Promise</code>
 downloadImage
 
-Downloads an image from the internet and saves it to disk.
+Downloads an image from the internet and resolves with a buffer of the image.
 Accepts a card image URL OR card URL as it's parameter.
-Returns a string of the path on disk where the image was saved.
 
 **Kind**: instance method of [<code>Ripper</code>](#Ripper)  
 **Returns**: <code>Promise</code> - - A promise that returns an array if resolved
