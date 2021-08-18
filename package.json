@@ -7,7 +7,7 @@
     "rip": "DEBUG=precious-data ./p-data.js rip -a",
     "dev": "npx supervisor index",
     "jsdoc": "jsdoc2md ./lib/*.js > ./docs/index.md",
-    "test": "NOCK_BACK_MODE=lockdown jest --verbose",
+    "test": "jest --verbose",
     "fixtures": "NOCK_BACK_MODE=record jest",
     "coverage": "NOCK_BACK_MODE=lockdown jest --coverage && coveralls < coverage/lconv.info"
   },

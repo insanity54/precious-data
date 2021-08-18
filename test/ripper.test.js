@@ -434,34 +434,37 @@ describe('Ripper', () => {
     );
     it(
       'Should accept a card URL, download the card image and resolve with a Readable stream',
-      () => {
-        return nockBack('downloadImage.2.json')
-          .then(({ nockDone, context }) => {
-            return ripper
-              .downloadImage('http://p-memories.com/node/926791')
-              .then((imageStream) => {
-                expect(imageStream).toBeInstanceOf(Readable)
-                context.assertScopesFinished()
-              })
-              .then(nockDone)
-          })
+      async () => {
+        const { completeRecording, assertScopesFinished } = await record("downloadImage2");
+        const imageStream = await ripper.downloadImage('http://p-memories.com/node/926791');
+        // put the stream into flowing mode and save the file (straight to /dev/null is fine)
+        // so nock actually records the stream's contents
+        await new Promise((resolve, reject) => {
+          imageStream.pipe(fs.createWriteStream('/dev/null'))
+          imageStream.on('end', resolve);
+          imageStream.on('error', reject);
+        })
+        completeRecording();
+        assertScopesFinished();
+        expect(imageStream).toBeInstanceOf(Readable);
       }
     );
     it(
       'should accept a card data object, download the image specified within, and resolve with a Readable stream',
-      () => {
-        return nockBack('downloadImage.3.json')
-          .then(({ nockDone, context }) => {
-            let cardData = require(path.join(__dirname, '..', 'fixtures', 'HMK_01-001.json'));
-            console.log(cardData)
-            return ripper
-              .downloadImage(cardData)
-              .then((imageStream) => {
-                expect(imageStream).toBeInstanceOf(Readable)
-                context.assertScopesFinished()
-              })
-              .then(nockDone)
-          })
+      async () => {
+        let cardData = require(path.join(__dirname, '..', 'fixtures', 'HMK_01-001.json'));
+        const { completeRecording, assertScopesFinished } = await record("downloadImage3");
+        const imageStream = await ripper.downloadImage(cardData);
+        // put the stream into flowing mode and save the file (straight to /dev/null is fine)
+        // so nock actually records the stream's contents
+        await new Promise((resolve, reject) => {
+          imageStream.pipe(fs.createWriteStream('/dev/null'))
+          imageStream.on('end', resolve);
+          imageStream.on('error', reject);
+        })
+        completeRecording();
+        assertScopesFinished();
+        expect(imageStream).toBeInstanceOf(Readable);
       }
     )
   });
@@ -610,32 +613,24 @@ describe('Ripper', () => {
   describe('getFirstCardImageUrl', () => {
     it(
       'Should accept a set URL and return the image URL for the first card in the set',
-      () => {
-        return nockBack('getFirstCardImageUrl.1.json')
-          .then(({ nockDone, context }) => {
-            return ripper
-              .getFirstCardImageUrl('http://p-memories.com/card_product_list_page?field_title_nid=919863-SSSS.GRIDMAN&s_flg=on')
-              .then((imageUrl) => {
-                expect(imageUrl).toEqual('http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg')
-                context.assertScopesFinished()
-              })
-              .then(nockDone)
+      async () => {
+        const { completeRecording, assertScopesFinished } = await record("getFirstCardImageUrl1");
+        const imageUrl = await ripper.getFirstCardImageUrl('http://p-memories.com/card_product_list_page?field_title_nid=919863-SSSS.GRIDMAN&s_flg=on');
+        completeRecording();
+        assertScopesFinished();
+        expect(imageUrl).toEqual('http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg')
+      })
+
+    it(
+      'should return normalized URLs', 
+      async () => {
+        const { completeRecording, assertScopesFinished } = await record("getFirstCardImageUrl2");
+        const imageUrl = await ripper.getFirstCardImageUrl('http://p-memories.com/card_product_list_page?field_title_nid=4539-%E3%82%AA%E3%82%AA%E3%82%AB%E3%83%9F%E3%81%95%E3%82%93%E3%81%A8%E4%B8%83%E4%BA%BA%E3%81%AE%E4%BB%B2%E9%96%93%E3%81%9F%E3%81%A1&s_flg=on')
+        completeRecording();
+        assertScopesFinished();
+        expect(imageUrl).toEqual('http://p-memories.com/images/product/ookami/ookami_01-001.jpg')
       })
     })
-
-    it('should return normalized URLs', () => {
-      return nockBack('getFirstCardImageUrl.2.json')
-        .then(({ nockDone, context }) => {
-          return ripper
-            .getFirstCardImageUrl('http://p-memories.com/card_product_list_page?field_title_nid=4539-%E3%82%AA%E3%82%AA%E3%82%AB%E3%83%9F%E3%81%95%E3%82%93%E3%81%A8%E4%B8%83%E4%BA%BA%E3%81%AE%E4%BB%B2%E9%96%93%E3%81%9F%E3%81%A1&s_flg=on')
-            .then(imageUrl => {
-              expect(imageUrl).toEqual('http://p-memories.com/images/product/ookami/ookami_01-001.jpg')
-              context.assertScopesFinished()
-            })
-            .then(nockDone)
-        })
-    })
-  })
 
 
   describe('getImageUrlFromEachSet', () => {
