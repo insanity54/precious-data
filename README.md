@@ -2,6 +2,8 @@
 
 [![CircleCI](https://circleci.com/gh/insanity54/precious-data.svg?style=svg)](https://circleci.com/gh/insanity54/precious-data) 
 
+[![Coverage Status](https://coveralls.io/repos/github/insanity54/precious-data/badge.svg?branch=master)](https://coveralls.io/github/insanity54/precious-data?branch=master)
+
 *a.k.a. Pirate Memories because that's more fun.*
 
 Precious Data is a project to copy and mirror trading card data from the official Precious Memories (P-Memories) website.
@@ -20,23 +22,28 @@ For example, cards belonging to the Hatsune Miku card set will be saved in the a
 
 As future updates and additions to P-Memories cards are anticipated, the ripper is smart enough to merge official data with unofficial translations. This means that the card JSON files are safe to edit manually, and work will not be lost during future data rips.
 
-#### Installation:
+## Installation:
 
     git clone https://github.com/insanity54/precious-data
     cd precious-data
     npm install
 
-#### Usage:
+## Usage:
 
     npm run rip
 
 Card data is downloaded to the `data` folder
 
-#### Advanced Usage:
+## Advanced Usage:
 
 Advanced usage of the CLI tool `p-data.js` allows the user to download specific sets, specific URLs, or all precious-memories cards in existence. The `-i` (incremental) flag can significantly reduce network usage by only downloading card data which has not already been downloaded.
 
-##### Examples
+## Documentation
+
+See ./docs
+
+
+## Examples
 
 Download all cards in the Hatsune Miku set.
 

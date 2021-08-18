@@ -2,8 +2,13 @@
 const {
   splitTextList,
   parseCardId,
-  parseCardDataFromHtml
+  parseCardDataFromHtml,
+  normalizeUrl,
 } = require('../lib/parsers')
+
+const path = require('path');
+const fixturesPath = path.join(__dirname, '..', 'fixtures')
+
 
 describe('parsers', () => {
 
@@ -181,6 +186,40 @@ describe('parsers', () => {
         'ヘッドフォン',
         '音楽'
       ])
+    })
+  })
+
+
+    describe('parseCardDataFromHtml', () => {
+    it('should get card data from a {String} html', () => {
+      const html = require(path.join(fixturesPath, 'HMK_01-001.html.json'))[0].response
+      return parseCardDataFromHtml(html)
+        .then((data) => {
+          expect(data).toHaveProperty('number', '01-001')
+          expect(data).toHaveProperty('rarity', 'SR（サイン）')
+          expect(data).toHaveProperty('setName', '初音ミク')
+          expect(data).toHaveProperty('name', '初音 ミク')
+          expect(data).toHaveProperty('type', 'キャラクター')
+          expect(data).toHaveProperty('cost', '4')
+          expect(data).toHaveProperty('source', '1')
+          expect(data).toHaveProperty('color', '緑')
+          expect(data).toHaveProperty('characteristic', ['ヘッドフォン', '音楽'])
+          expect(data).toHaveProperty('ap', '40')
+          expect(data).toHaveProperty('dp', '30')
+          expect(data).toHaveProperty('parallel', '')
+          expect(data).toHaveProperty('text', 'このカードが登場した場合、手札から『初音 ミク』のキャラ1枚を場に出すことができる。[アプローチ/両方]:《0》自分の「初音 ミク」2枚を休息状態にする。その場合、自分のキャラ1枚は、ターン終了時まで+10/±0または±0/+10を得る。')
+          expect(data).toHaveProperty('flavor', '-')
+          expect(data).toHaveProperty('image', 'http://p-memories.com/images/product/HMK/HMK_01-001.jpg')
+          expect(data).toHaveProperty('url', 'http://p-memories.com/node/383031')
+          expect(data).toHaveProperty('setAbbr', 'HMK')
+          expect(data).toHaveProperty('num', '001')
+          expect(data).toHaveProperty('release', '01')
+          expect(data).toHaveProperty('id', 'HMK 01-001')
+        })
+    })
+
+    it('should reject to throw an error if not receiving any param', () => {
+      return expect(parseCardDataFromHtml()).rejects.toThrow('parameter')
     })
   })
 

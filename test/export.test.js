@@ -1,6 +1,16 @@
-const preciousData = require('../index');
+const path = require('path');
+
+const setAbbrIndexPath = path.join(__dirname, '..', 'data', 'setAbbrIndex.json');
+const setAbbrIndexFixturePath = path.join(__dirname, '..', 'fixtures', 'setAbbrIndex.json');
+const setAbbrIndexFixture = require(setAbbrIndexFixturePath);
+
+jest.doMock(setAbbrIndexPath, () => {
+  return JSON.stringify(setAbbrIndexFixture)
+}, { virtual: true })
+
 const toBeType = require('jest-tobetype');
 expect.extend(toBeType)
+const preciousData = require('../index');
 
 describe('precious-data exports', () => {
   it('should export an object containg cards, version, sets properties, and parsers', () => {

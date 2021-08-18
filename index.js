@@ -17,7 +17,8 @@ function getCardImagePath(cardJsonPath) {
 }
 
 function collectSets() {
-	const setAbbrIndex = require(path.join(__dirname, 'data', 'setAbbrIndex.json'));
+	const json = require(path.join(__dirname, 'data', 'setAbbrIndex.json'));
+	const setAbbrIndex = JSON.parse(json);
 	return setAbbrIndex;
 }
 

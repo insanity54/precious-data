@@ -6,9 +6,10 @@
   "scripts": {
     "rip": "DEBUG=precious-data ./p-data.js rip -a",
     "dev": "npx supervisor index",
-    "jsdoc": "npx jsdoc-to-markdown ./util/ripper.js > ./docs/ripper.md",
+    "jsdoc": "jsdoc-to-markdown ./lib/*.js > ./docs/index.md",
     "test": "NOCK_BACK_MODE=lockdown jest --verbose",
-    "fixtures": "NOCK_BACK_MODE=record jest"
+    "fixtures": "NOCK_BACK_MODE=record jest",
+    "coverage": "NOCK_BACK_MODE=lockdown jest --coverage && coveralls < coverage/lconv.info"
   },
   "keywords": [
     "precious",
@@ -23,9 +24,11 @@
   "author": "Chris Grimmett <chris@grimtech.net>",
   "license": "Unlicense",
   "devDependencies": {
+    "coveralls": "^3.1.1",
     "jest": "^26.6.0",
     "jest-extended": "^0.11.5",
-    "nock": "^13.0.4"
+    "nock": "^13.0.4",
+    "nock-record": "^0.3.9"
   },
   "dependencies": {
     "axios": "^0.21.1",
@@ -34,6 +37,7 @@
     "debug": "^4.2.0",
     "fuse.js": "^6.4.1",
     "globby": "^11.0.3",
+    "jest-nock": "^0.2.1",
     "jest-tobetype": "^1.2.3",
     "yargs": "^16.0.3"
   }

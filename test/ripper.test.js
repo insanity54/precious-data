@@ -2,17 +2,24 @@ const Ripper = require('../lib/ripper')
 const path = require('path')
 const Promise = require('bluebird')
 const axios = require('axios')
-const nock = require('nock')
+const { Readable } = require('stream');
+const { setupRecorder } = require('nock-record');
+const fs = require('fs');
+const fsp = fs.promises;
 
-jest.mock('fs')
 
-nockBack = nock.back
-nockBack.fixtures = path.join(__dirname, '..', 'fixtures')
+const setAbbrIndexPath = path.join(__dirname, '..', 'data', 'setAbbrIndex.json');
+const setAbbrIndexFixturePath = path.join(__dirname, '..', 'fixtures', 'setAbbrIndex.json');
+const setAbbrIndexFixture = require(setAbbrIndexFixturePath);
+const hmk01001DataPath = path.join(__dirname, '..', 'data', 'HMK', '01', 'HMK_01-001.json');
+const hmk01001FixturePath = path.join(__dirname, '..', 'fixtures', 'HMK_01-001.json');
+const hmk01001Fixture = require(hmk01001FixturePath);
 
-const setAbbrIndexFixture = require(path.join(__dirname, '..', 'fixtures', 'setAbbrIndex.json'))
-const mockFileStructureA = {
-  [path.join(__dirname, '..', 'data', 'setAbbrIndex.json')]: JSON.stringify(setAbbrIndexFixture)
-}
+
+const record = setupRecorder();
+
+
+// nockBack.fixtures = path.join(__dirname, '..', 'fixtures')
 
 
 let ripper
@@ -22,12 +29,20 @@ beforeEach(() => {
 
 describe('Ripper', () => {
   beforeEach(() => {
-    nockBack.setMode('record')
+    jest.doMock(setAbbrIndexPath, () => {
+      return JSON.stringify(setAbbrIndexFixture)
+    }, { virtual: true })
+
+    jest.doMock(hmk01001DataPath, () => {
+      return JSON.stringify(hmk01001Fixture)
+    }, { virtual: true })
+
   })
   describe('getCardUrlsFromSetPage', () => {
     it(
       'should accept a card number and setUrl and resolve an object with cardUrl and cardImageUrl',
-      () => {
+      async () => {
+
         return nockBack('getCardUrlsFromSetPage.json')
           .then(({
             nockDone,
@@ -48,9 +63,6 @@ describe('Ripper', () => {
   })
 
   describe('lookupCardUrl', () => {
-    beforeEach(() => {
-      require('fs').__setMockFiles(mockFileStructureA)
-    })
     it('should throw an error if not receiving a parameter', () => {
       return expect(() => {
         ripper.lookupCardUrl()
@@ -104,13 +116,6 @@ describe('Ripper', () => {
   });
 
   describe('isLocalData', () => {
-    beforeEach(() => {
-      let data = require('../fixtures/HMK_01-001.json')
-      let mockFileStructureB = {
-        [path.join(__dirname, '..', 'data', 'HMK', '01', 'HMK_01-001.json')]: JSON.stringify(data)
-      }
-      require('fs').__setMockFiles(mockFileStructureB)
-    })
     it(
       'should return a promise with true for a card that exists on disk',
       () => {
@@ -274,82 +279,7 @@ describe('Ripper', () => {
     })
   })
 
-  describe('isLocalCard', () => {
-    it(
-      'should return a promise resolving true if the card exists on disk',
-      () => {
-        return ripper.isLocalCard('HMK_01-001').then((realCardOnDisk) => {
-          expect(realCardOnDisk).toBe(true);
-        });
-      }
-    );
 
-    it(
-      'should return a promise resolving false if the card does not exist on disk',
-      () => {
-        return ripper.isLocalCard('TTQ_05-003').then((fakeCardNotOnDisk) => {
-          expect(fakeCardNotOnDisk).toBe(false);
-        });
-      }
-    );
-
-    it('should handle relative image urls as parameter', () => {
-      return ripper.isLocalCard('/images/product/PM_HS/PM_HS_01-002.jpg').then((realCardOnDisk) => {
-        expect(realCardOnDisk).toBe(true);
-      });
-    });
-
-    it('should handle absolute image urls as parameter', () => {
-      return ripper.isLocalCard('http://p-memories.com/images/product/HMK/HMK_01-001.jpg').then((realCardOnDisk) => {
-        expect(realCardOnDisk).toBe(true);
-      });
-    });
-  })
-
-  xdescribe('ripCardById', () => {
-    it('should accept a card ID as param and rip the card to disk', () => {
-      return ripper.ripCardById('ERMG 01-001').then((writeResult) => {
-        expect(typeof writeResult).toBe('object');
-        expect(writeResult).toHaveProperty('imagePath')
-        expect(writeResult).toHaveProperty('dataPath')
-      });
-    })
-  })
-
-
-  describe('parseCardDataFromHtml', () => {
-    it('should get card data from a {String} html', () => {
-      const html = require(path.join(nockBack.fixtures, 'HMK_01-001.html.json'))[0].response
-      return ripper
-        .parseCardDataFromHtml(html)
-        .then((data) => {
-          expect(data).toHaveProperty('number', '01-001')
-          expect(data).toHaveProperty('rarity', 'SR（サイン）')
-          expect(data).toHaveProperty('setName', '初音ミク')
-          expect(data).toHaveProperty('name', '初音 ミク')
-          expect(data).toHaveProperty('type', 'キャラクター')
-          expect(data).toHaveProperty('cost', '4')
-          expect(data).toHaveProperty('source', '1')
-          expect(data).toHaveProperty('color', '緑')
-          expect(data).toHaveProperty('characteristic', ['ヘッドフォン', '音楽'])
-          expect(data).toHaveProperty('ap', '40')
-          expect(data).toHaveProperty('dp', '30')
-          expect(data).toHaveProperty('parallel', '')
-          expect(data).toHaveProperty('text', 'このカードが登場した場合、手札から『初音 ミク』のキャラ1枚を場に出すことができる。[アプローチ/両方]:《0》自分の「初音 ミク」2枚を休息状態にする。その場合、自分のキャラ1枚は、ターン終了時まで+10/±0または±0/+10を得る。')
-          expect(data).toHaveProperty('flavor', '-')
-          expect(data).toHaveProperty('image', 'http://p-memories.com/images/product/HMK/HMK_01-001.jpg')
-          expect(data).toHaveProperty('url', 'http://p-memories.com/node/383031')
-          expect(data).toHaveProperty('setAbbr', 'HMK')
-          expect(data).toHaveProperty('num', '001')
-          expect(data).toHaveProperty('release', '01')
-          expect(data).toHaveProperty('id', 'HMK 01-001')
-        })
-    })
-
-    it('should reject to throw an error if not receiving any param', () => {
-      return expect(ripper.parseCardDataFromHtml()).rejects.toThrow('parameter')
-    })
-  })
 
   describe('ripCardData', () => {
     it('Should throw an error if not receiving any param', () => {
@@ -402,7 +332,6 @@ describe('Ripper', () => {
 
     it('should accept a card ID as first param', () => {
       // @TODO https://github.com/insanity54/precious-data/issues/3
-      require('fs').__setMockFiles(mockFileStructureA)
       return nockBack('ripCardData.2.json')
         .then(({
           nockDone,
@@ -474,51 +403,44 @@ describe('Ripper', () => {
 
   });
 
-  describe('writeCardData', () => {
-    it('should create a JSON file in the appropriate folder', () => {
-      let cardData = require('../fixtures/HMK_01-001.json');
-      return ripper
-        .writeCardData(cardData)
-        .then((res) => {
-          let cardDataResult = require('../data/HMK/01/HMK_01-001.json');
-          expect(cardDataResult.name).toEqual('初音 ミク');
-          expect(res).toMatch(/\/data\/HMK\/01\/HMK_01-001.json/);
-        });
-    });
-
-    it('should not overwrite locally modified JSON files.', () => {
-      let cardData = require('../fixtures/HMK_01-001.json');
-      return ripper
-        .writeCardData(cardData)
-        .then((res) => {
-          let cardDataResult = require('../data/HMK/01/HMK_01-001.json');
-          expect(cardDataResult.nameEn).toEqual('Hatsune Miku');
-          expect(cardDataResult.setNameEn).toEqual('Hatsune Miku');
-          expect(res).toMatch(/\/data\/HMK\/01\/HMK_01-001.json/);
-        });
-    });
-  });
-
   describe('downloadImage', () => {
-    beforeEach(() => {})
-    let correctImagePath = path.join(
-      __dirname,
-      '..',
-      'data',
-      'SSSS',
-      '01',
-      'SSSS_01-001.jpg'
+    jest.setTimeout(20000)
+    it(
+      'Should accept a card image URL, image and resolve with a Readable stream',
+      async () => {
+
+        const { completeRecording, assertScopesFinished } = await record("downloadImage1");
+    
+        const imageStream = await ripper.downloadImage('http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg');
+
+        // put the stream into flowing mode and save the file (straight to /dev/null is fine)
+        // so nock actually records the stream's contents
+        await new Promise((resolve, reject) => {
+          imageStream.pipe(fs.createWriteStream('/dev/null'))
+          imageStream.on('end', resolve);
+          imageStream.on('error', reject);
+        })
+
+
+        // Complete the recording, allow for Nock to write fixtures
+        completeRecording();
+
+        // Optional; assert that all recorded fixtures have been called
+        assertScopesFinished();
+
+        // Perform your own assertions
+        expect(imageStream).toBeInstanceOf(Readable)
+      }
     );
     it(
-      'Should accept a card URL and download the card image and write it to the correct folder',
+      'Should accept a card URL, download the card image and resolve with a Readable stream',
       () => {
-        return nockBack('downloadImage.1.json')
+        return nockBack('downloadImage.2.json')
           .then(({ nockDone, context }) => {
             return ripper
               .downloadImage('http://p-memories.com/node/926791')
-              .then((imagePath) => {
-                expect(imagePath).toBeString()
-                expect(imagePath).toEqual(correctImagePath)
+              .then((imageStream) => {
+                expect(imageStream).toBeInstanceOf(Readable)
                 context.assertScopesFinished()
               })
               .then(nockDone)
@@ -526,32 +448,16 @@ describe('Ripper', () => {
       }
     );
     it(
-      'Should download a card image and place it in the correct folder',
-      () => {
-        return nockBack('downloadImage.2.json')
-          .then(({ nockDone, context }) => {
-            return ripper
-              .downloadImage('http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg')
-              .then((imagePath) => {
-                expect(imagePath).toBeString()
-                expect(imagePath).toEqual(correctImagePath)
-                context.assertScopesFinished()
-              })
-              .then(nockDone)
-            })
-      }
-    );
-    it(
-      'should accept a card data object, download the image specified within, and place it in the correct folder',
+      'should accept a card data object, download the image specified within, and resolve with a Readable stream',
       () => {
         return nockBack('downloadImage.3.json')
           .then(({ nockDone, context }) => {
             let cardData = require(path.join(__dirname, '..', 'fixtures', 'HMK_01-001.json'));
+            console.log(cardData)
             return ripper
               .downloadImage(cardData)
-              .then((imagePath) => {
-                expect(imagePath).toBeString()
-                expect(imagePath).toEqual(path.join(__dirname, '..', 'data', 'HMK', '01', 'HMK_01-001.jpg'))
+              .then((imageStream) => {
+                expect(imageStream).toBeInstanceOf(Readable)
                 context.assertScopesFinished()
               })
               .then(nockDone)
@@ -599,10 +505,6 @@ describe('Ripper', () => {
   });
 
   describe('loadSetAbbrIndex', () => {
-    beforeEach(() => {
-      require('fs').__setMockFiles(mockFileStructureA)
-    })
-
     it('should return a Promise', () => {
       let index = ripper.loadSetAbbrIndex()
       return expect(index).resolves.toStrictEqual(expect.anything())
@@ -617,7 +519,9 @@ describe('Ripper', () => {
     })
 
     it('should reject with an Error if setAbbrIndex.json does not exist', () => {
-      require('fs').__setMockFiles(null)
+      jest.doMock(setAbbrIndexPath, () => {
+        return null
+      }, { virtual: true })
       let index = ripper.loadSetAbbrIndex()
       return expect(index).rejects.toThrow(/ENOENT/)
     })
@@ -649,15 +553,14 @@ describe('Ripper', () => {
   })
 
   describe('getSetUrlFromSetAbbr', () => {
-    beforeEach(() => {
-      require('fs').__setMockFiles(mockFileStructureA)
-    })
     it('Should return a promise', () => {
       let url = ripper.getSetUrlFromSetAbbr('HMK')
       return expect(url).toHaveProperty('then');
     })
     it('Should reject with an error if the Set Index does not exist', () => {
-      require('fs').__setMockFiles(null)
+      jest.doMock(setAbbrIndexPath, () => {
+        return null
+      }, { virtual: true })
       let url = ripper.getSetUrlFromSetAbbr('HMK')
       return expect(url).rejects.toThrow('ENOENT')
     })
@@ -796,22 +699,4 @@ describe('Ripper', () => {
     }, 1000*60*3)
   })
 
-  describe('saveCardData', () => {
-    it('Should accept an object and resolve to be an {Array} containing paths of image & json on disk', () => {
-      return nockBack('saveCardData.1.json')
-        .then(({ nockDone, context }) => {
-          let cardData = require('../fixtures/HMK_01-001.json');
-            return ripper
-              .saveCardData(cardData)
-              .then((savePaths) => {
-                expect(savePaths).toBeArray();
-                const [imagePath, jsonPath] = savePaths
-                expect(imagePath).toBe(path.join(__dirname, '..', 'data', 'HMK', '01', 'HMK_01-001.jpg'))
-                expect(jsonPath).toBe(path.join(__dirname, '..', 'data', 'HMK', '01', 'HMK_01-001.json'))
-                context.assertScopesFinished()
-              })
-              .then(nockDone)
-        })
-    })
-  })
 })
