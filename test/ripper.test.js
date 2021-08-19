@@ -7,7 +7,6 @@ const { setupRecorder } = require('nock-record');
 const fs = require('fs');
 const fsp = fs.promises;
 
-
 const setAbbrIndexPath = path.join(__dirname, '..', 'data', 'setAbbrIndex.json');
 const setAbbrIndexFixturePath = path.join(__dirname, '..', 'fixtures', 'setAbbrIndex.json');
 const setAbbrIndexFixture = require(setAbbrIndexFixturePath);
@@ -19,45 +18,28 @@ const hmk01001Fixture = require(hmk01001FixturePath);
 const record = setupRecorder();
 
 
-// nockBack.fixtures = path.join(__dirname, '..', 'fixtures')
-
 
 let ripper
 beforeEach(() => {
   ripper = new Ripper();
+  setAbbrIndexSpy = jest.spyOn(ripper, 'loadSetAbbrIndex');
+  setAbbrIndexSpy.mockImplementation(() => {
+    return Promise.resolve(setAbbrIndexFixture)
+  })
 })
 
 describe('Ripper', () => {
-  beforeEach(() => {
-    jest.doMock(setAbbrIndexPath, () => {
-      return JSON.stringify(setAbbrIndexFixture)
-    }, { virtual: true })
-
-    jest.doMock(hmk01001DataPath, () => {
-      return JSON.stringify(hmk01001Fixture)
-    }, { virtual: true })
-
-  })
   describe('getCardUrlsFromSetPage', () => {
     it(
       'should accept a card number and setUrl and resolve an object with cardUrl and cardImageUrl',
       async () => {
-
-        return nockBack('getCardUrlsFromSetPage.json')
-          .then(({
-            nockDone,
-            context
-          }) => {
-            return ripper
-              .getCardUrlsFromSetPage('01-050', 'http://p-memories.com/card_product_list_page?field_title_nid=919863-SSSS.GRIDMAN&s_flg=on')
-              .then((card) => {
-                expect(typeof card).toBe('object')
-                expect(card).toHaveProperty('cardUrl', 'http://p-memories.com/node/926840')
-                expect(card).toHaveProperty('cardImageUrl', 'http://p-memories.com/images/product/SSSS/SSSS_01-050.jpg')
-                context.assertScopesFinished()
-              })
-              .then(nockDone)
-          })
+        const { completeRecording, assertScopesFinished } = await record("getCardUrlsFromSetPage");
+        const card = await ripper.getCardUrlsFromSetPage('01-050', 'http://p-memories.com/card_product_list_page?field_title_nid=919863-SSSS.GRIDMAN&s_flg=on')
+        completeRecording();
+        assertScopesFinished();
+        expect(typeof card).toBe('object');
+        expect(card).toHaveProperty('cardUrl', 'http://p-memories.com/node/926840');
+        expect(card).toHaveProperty('cardImageUrl', 'http://p-memories.com/images/product/SSSS/SSSS_01-050.jpg');
       }
     )
   })
@@ -75,17 +57,13 @@ describe('Ripper', () => {
     })
     it(
       'should resolve { cardUrl, cardImageUrl } when given a card ID',
-      () => {
-        return nockBack('lookupCardUrl.1.json').then(({
-          nockDone,
-          context
-        }) => {
-          return ripper.lookupCardUrl('SSSS_01-001').then((card) => {
-            expect(card).toHaveProperty('cardUrl', 'http://p-memories.com/node/926791')
-            expect(card).toHaveProperty('cardImageUrl', 'http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg')
-            context.assertScopesFinished()
-          }).then(nockDone)
-        })
+      async () => {
+        const { completeRecording, assertScopesFinished } = await record("lookupCardUrl1");
+        const card = await ripper.lookupCardUrl('SSSS_01-001')
+        completeRecording();
+        assertScopesFinished();
+        expect(card).toHaveProperty('cardUrl', 'http://p-memories.com/node/926791')
+        expect(card).toHaveProperty('cardImageUrl', 'http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg')
       }
     )
   });
@@ -135,65 +113,50 @@ describe('Ripper', () => {
   });
 
   describe('getSets', () => {
-    it('should resolve a list objects which contains {String} setUrl and {String} setName', () => {
-      return nockBack('getSets.1.json')
-        .then(({ nockDone, context }) => {
-          return ripper.getSets()
-            .then((sets) => {
-              expect(sets).toEqual(expect.arrayContaining([
-                {
-                  setUrl: 'http://p-memories.com/card_product_list_page?field_title_nid=919863-SSSS.GRIDMAN&s_flg=on',
-                  setName: 'SSSS.GRIDMAN'
-                }
-              ]))
-              context.assertScopesFinished()
-            })
-            .then(nockDone)
-        })
+    it('should resolve a list objects which contains {String} setUrl and {String} setName', async () => {
+      const { completeRecording, assertScopesFinished } = await record("getSets");
+      const sets = await ripper.getSets()
+      completeRecording();
+      assertScopesFinished();
+      expect(sets).toEqual(expect.arrayContaining([
+        {
+          setUrl: 'http://p-memories.com/card_product_list_page?field_title_nid=919863-SSSS.GRIDMAN&s_flg=on',
+          setName: 'SSSS.GRIDMAN'
+        }
+      ]))
     })
   })
 
   describe('getSetNames', () => {
-    it('should resolve a list of {String} setNames', () => {
-      return nockBack('getSetNames.1.json')
-        .then(({ nockDone, context }) => {
-          return ripper.getSetNames()
-            .then((names) => {
-              expect(names).toEqual(expect.arrayContaining([
-                'SSSS.GRIDMAN',
-                '初音ミク',
-                'ハロー！！きんいろモザイク'
-              ]))
-              context.assertScopesFinished()
-            })
-            .then(nockDone)
-        })
+    it('should resolve a list of {String} setNames', async () => {
+      const { completeRecording, assertScopesFinished } = await record("getSetNames1");
+      const names = await ripper.getSetNames()
+      completeRecording();
+      assertScopesFinished();
+      expect(names).toEqual(expect.arrayContaining([
+        'SSSS.GRIDMAN',
+        '初音ミク',
+        'ハロー！！きんいろモザイク'
+      ]))
     })
   })
 
   describe('getSetUrls', () => {
     it(
       'should return a list of all set URLs found on p-memories.com',
-      () => {
-        return nockBack('getSetUrls.json')
-          .then(({
-            nockDone,
-            context
-          }) => {
-            return ripper.getSetUrls()
-              .then((setList) => {
-                expect(setList).toBeInstanceOf(Array)
-                expect(setList.length).toBeGreaterThanOrEqual(94)
-                expect(setList[0]).toEqual(expect.stringMatching(/http:\/\/p-memories.com\/card_product_list_page\?/))
-                expect(setList).toEqual(expect.arrayContaining([
-                  'http://p-memories.com/card_product_list_page?field_title_nid=241831-ClariS&s_flg=on',
-                  'http://p-memories.com/card_product_list_page?field_title_nid=919863-SSSS.GRIDMAN&s_flg=on',
-                  'http://p-memories.com/card_product_list_page?field_title_nid=280695-%E5%88%9D%E9%9F%B3%E3%83%9F%E3%82%AF&s_flg=on'
-                ]));
-                context.assertScopesFinished()
-              })
-              .then(nockDone)
-          })
+      async () => {
+        const { completeRecording, assertScopesFinished } = await record("placeholder");
+        const setList = await ripper.getSetUrls()
+        completeRecording();
+        assertScopesFinished();
+        expect(setList).toBeInstanceOf(Array)
+        expect(setList.length).toBeGreaterThanOrEqual(94)
+        expect(setList[0]).toEqual(expect.stringMatching(/http:\/\/p-memories.com\/card_product_list_page\?/))
+        expect(setList).toEqual(expect.arrayContaining([
+          'http://p-memories.com/card_product_list_page?field_title_nid=241831-ClariS&s_flg=on',
+          'http://p-memories.com/card_product_list_page?field_title_nid=919863-SSSS.GRIDMAN&s_flg=on',
+          'http://p-memories.com/card_product_list_page?field_title_nid=280695-%E5%88%9D%E9%9F%B3%E3%83%9F%E3%82%AF&s_flg=on'
+        ]));
       }
     );
   });
@@ -202,80 +165,53 @@ describe('Ripper', () => {
 
 
   describe('ripSetData', () => {
-    it('should accept a setURL as parameter and return a promise', () => {
-      return nockBack('ripSetData.5.json')
-        .then(({ nockDone, context }) => {
-          let promise = ripper.ripSetData('http://p-memories.com/card_product_list_page?field_title_nid=919863-SSSS.GRIDMAN&s_flg=on')
-          return expect(promise).resolves.toStrictEqual(expect.anything())
-        })
+    jest.setTimeout(300000) // 5 minutes
+    it('should accept a setURL as parameter and return a promise', async () => {
+      const { completeRecording, assertScopesFinished } = await record("ripSetData1");
+      const imagePromise = ripper.ripSetData('http://p-memories.com/card_product_list_page?field_title_nid=241831-ClariS&s_flg=on');
+      await expect(imagePromise).resolves.toStrictEqual(expect.anything())
+      completeRecording();
+      assertScopesFinished();
     })
     it('should throw if not receiving a setURL as param', () => {
       let promise = ripper.ripSetData()
       return expect(promise).rejects.toThrow(/param/)
     })
-    it('should return an array of objects containing cardUrl and cardImageUrl', () => {
-        return nockBack('ripSetData.1.json')
-          .then(({ nockDone, context }) => {
-            return ripper
-              .ripSetData('http://p-memories.com/card_product_list_page?field_title_nid=241831-ClariS&s_flg=on')
-              .then((data) => {
-                expect(data).toBeArray()
-                expect(data.length).toBe(1)
-                expect(data[0].cardImageUrl).toBeString()
-                expect(data[0].cardUrl).toBeString()
-                context.assertScopesFinished()
-              })
-              .then(nockDone)
-          })
-      }
-    )
-    it('should rip a set which contains more than one page', () => {
-      return nockBack('ripSetData.2.json')
-        .then(({
-          nockDone,
-          context
-        }) => {
-          return ripper
-            .ripSetData('http://p-memories.com/card_product_list_page?field_title_nid=280695-%E5%88%9D%E9%9F%B3%E3%83%9F%E3%82%AF&s_flg=on')
-            .then((data) => {
-              expect(data).toBeArray()
-              expect(data.length).toBeGreaterThanOrEqual(403);
-              context.assertScopesFinished()
-            })
-            .then(nockDone)
-        })
+    it('should resolve with an array of objects containing cardUrl and cardImageUrl', async () => {
+        const { completeRecording, assertScopesFinished } = await record("ripSetData2");
+        const data = await ripper.ripSetData('http://p-memories.com/card_product_list_page?field_title_nid=241831-ClariS&s_flg=on')
+        completeRecording();
+        assertScopesFinished();
+        expect(data).toBeArray();
+        expect(data.length).toBe(1);
+        expect(data[0].cardImageUrl).toBeString();
+        expect(data[0].cardUrl).toBeString();
+    })
+    it('should rip a set which contains more than one page', async () => {
+      const { completeRecording, assertScopesFinished } = await record("ripSetData3");
+      const data = await ripper.ripSetData('http://p-memories.com/card_product_list_page?field_title_nid=280695-%E5%88%9D%E9%9F%B3%E3%83%9F%E3%82%AF&s_flg=on')
+      completeRecording();
+      assertScopesFinished();
+      expect(data).toBeArray();
+      expect(data.length).toBeGreaterThanOrEqual(403);
     })
 
-    it('should cope with a relative p-memories.com URL', () => {
-      return nockBack('ripSetData.3.json')
-        .then(({
-          nockDone,
-          context
-        }) => {
-          return ripper.ripSetData('/card_product_list_page?field_title_nid=241831-ClariS&s_flg=on')
-            .then((data) => {
-              expect(data).toBeInstanceOf(Array)
-              expect(data.length).toBe(1)
-              context.assertScopesFinished()
-            })
-            .then(nockDone)
-        })
+    it('should cope with a relative p-memories.com URL', async () => {
+      const { completeRecording, assertScopesFinished } = await record("ripSetData4");
+      const data = await ripper.ripSetData('/card_product_list_page?field_title_nid=241831-ClariS&s_flg=on')
+      completeRecording();
+      assertScopesFinished();
+      expect(data).toBeInstanceOf(Array)
+      expect(data.length).toBe(1)
     })
 
-    it('should download madoka release 03', () => {
-      return nockBack('ripSetData.4.json')
-        .then(({
-          nockDone,
-          context
-        }) => {
-          return ripper.ripSetData('http://p-memories.com/card_product_list_page?field_title_nid=313372-%E5%8A%87%E5%A0%B4%E7%89%88+%E9%AD%94%E6%B3%95%E5%B0%91%E5%A5%B3%E3%81%BE%E3%81%A9%E3%81%8B%E2%98%86%E3%83%9E%E3%82%AE%E3%82%AB&s_flg=on')
-            .then((data) => {
-              expect(data).toBeInstanceOf(Array);
-              expect(data.length).toBeGreaterThan(1);
-              context.assertScopesFinished()
-            })
-            .then(nockDone)
-        })
+    it('should download madoka release 03', async () => {
+      const { completeRecording, assertScopesFinished } = await record("ripSetData5");
+      const setData = await ripper.ripSetData('http://p-memories.com/card_product_list_page?field_title_nid=313372-%E5%8A%87%E5%A0%B4%E7%89%88+%E9%AD%94%E6%B3%95%E5%B0%91%E5%A5%B3%E3%81%BE%E3%81%A9%E3%81%8B%E2%98%86%E3%83%9E%E3%82%AE%E3%82%AB&s_flg=on')
+      completeRecording();
+      assertScopesFinished();
+      expect(setData).toBeInstanceOf(Array);
+      expect(setData.length).toBeGreaterThan(1);
     })
   })
 
@@ -292,114 +228,71 @@ describe('Ripper', () => {
         ripper.ripCardData('')
       }).toThrow(/Got an empty string/)
     })
-    it('Should accept a card URL and resolve to card data', () => {
-      return nockBack('ripCardData.1.json')
-        .then(({
-          nockDone,
-          context
-        }) => {
-          return ripper
-            .ripCardData('http://p-memories.com/node/926791')
-            .then((data) => {
-              expect(typeof data).toBe('object');
-              expect(data.number).toEqual('01-001');
-              expect(data.rarity).toEqual('SR');
-              expect(data.setName).toEqual('SSSS.GRIDMAN');
-              expect(data.name).toEqual('響 裕太');
-              expect(data.type).toEqual('キャラクター');
-              expect(data.cost).toEqual('6');
-              expect(data.source).toEqual('3');
-              expect(data.color).toEqual('赤');
-              expect(data.characteristic).toEqual(['制服']);
-              expect(data.ap).toEqual('-');
-              expect(data.dp).toEqual('-');
-              expect(data.parallel).toEqual('');
-              expect(data.text).toEqual(
-                'このカードが登場した場合、手札から名称に「グリッドマン」を含むキャラ1枚を場に出すことができる。[メイン/自分]:《休》名称に「グリッドマン」を含む自分のキャラ1枚は、ターン終了時まで+20/+20を得る。その場合、カードを1枚引く。'
-              );
-              expect(data.flavor).toEqual('グリッドマン…。オレと一緒に戦ってくれ！');
-              expect(data.url).toEqual('http://p-memories.com/node/926791');
-              expect(data.image).toEqual('http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg');
-              expect(data.setAbbr).toEqual('SSSS');
-              expect(data.id).toEqual('SSSS 01-001');
-              expect(data.num).toEqual('001');
-              expect(data.release).toEqual('01');
-              context.assertScopesFinished()
-            })
-            .then(nockDone)
-        })
+    it('Should accept a card URL and resolve to card data', async () => {
+        const { completeRecording, assertScopesFinished } = await record("ripCardData1");
+        const data = await ripper.ripCardData('http://p-memories.com/node/926791')
+        completeRecording();
+        assertScopesFinished();
+        expect(typeof data).toBe('object');
+        expect(data.number).toEqual('01-001');
+        expect(data.rarity).toEqual('SR');
+        expect(data.setName).toEqual('SSSS.GRIDMAN');
+        expect(data.name).toEqual('響 裕太');
+        expect(data.type).toEqual('キャラクター');
+        expect(data.cost).toEqual('6');
+        expect(data.source).toEqual('3');
+        expect(data.color).toEqual('赤');
+        expect(data.characteristic).toEqual(['制服']);
+        expect(data.ap).toEqual('-');
+        expect(data.dp).toEqual('-');
+        expect(data.parallel).toEqual('');
+        expect(data.text).toEqual(
+          'このカードが登場した場合、手札から名称に「グリッドマン」を含むキャラ1枚を場に出すことができる。[メイン/自分]:《休》名称に「グリッドマン」を含む自分のキャラ1枚は、ターン終了時まで+20/+20を得る。その場合、カードを1枚引く。'
+        );
+        expect(data.flavor).toEqual('グリッドマン…。オレと一緒に戦ってくれ！');
+        expect(data.url).toEqual('http://p-memories.com/node/926791');
+        expect(data.image).toEqual('http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg');
+        expect(data.setAbbr).toEqual('SSSS');
+        expect(data.id).toEqual('SSSS 01-001');
+        expect(data.num).toEqual('001');
+        expect(data.release).toEqual('01');
     });
 
-    it('should accept a card ID as first param', () => {
-      // @TODO https://github.com/insanity54/precious-data/issues/3
-      return nockBack('ripCardData.2.json')
-        .then(({
-          nockDone,
-          context
-        }) => {
-          return ripper
-            .ripCardData('SSSS 01-001')
-            .then((data) => {
-              expect(data).toBeObject()
-              expect(data).toHaveProperty('number', '01-001')
-              expect(data).toHaveProperty('url', 'http://p-memories.com/node/926791')
-              expect(data).toHaveProperty('image', 'http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg')
-              context.assertScopesFinished()
-            }).then(nockDone)
-        })
+    it('should accept a card ID as first param', async () => {
+      const { completeRecording, assertScopesFinished } = await record("ripCardData2");
+      const data = await ripper.ripCardData('http://p-memories.com/node/926791');
+      completeRecording();
+      assertScopesFinished();
+      expect(data).toBeObject()
+      expect(data).toHaveProperty('number', '01-001')
+      expect(data).toHaveProperty('url', 'http://p-memories.com/node/926791')
+      expect(data).toHaveProperty('image', 'http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg')
     });
 
     xit(
       'should accept a second parameter, a cardImageUrl, which will be used to determine whether or not to make a network request to rip card data.',
-      () => {
+      async () => {
         // https://github.com/insanity54/precious-data/issues/4
-        return nockBack('ripCardData.3.json')
-          .then(({
-            nockDone
-          }) => {
-            return ripper
-              .ripCardData('http://p-memories.com/node/932341', '/images/product/GPFN/GPFN_01-030a.jpg')
-              .then((data) => {
-                expect(typeof data).toBe('object');
-                expect(data.number).toEqual('01-030a');
-                expect(data.url).toEqual('http://p-memories.com/node/932341');
-                expect(data.id).toEqual('GPFN 01-030a');
-              })
-              .then(nockDone)
-          })
-      }
-    );
+        const { completeRecording, assertScopesFinished } = await record("ripCardData3");
+        const imageStream = await ripper.ripCardData('http://p-memories.com/node/932341', '/images/product/GPFN/GPFN_01-030a.jpg')
+        completeRecording();
+        assertScopesFinished();
+        expect(typeof data).toBe('object');
+        expect(data.number).toEqual('01-030a');
+        expect(data.url).toEqual('http://p-memories.com/node/932341');
+        expect(data.id).toEqual('GPFN 01-030a');
+    });
 
-    xit(
-      'should return a promise which rejects with an error if receiving a URL to a card which has already been downloaded',
-      () => {
-        // this should happen elsewhere, before calling ripCardData in order to keep functions neat and tidy
-        // https://github.com/insanity54/precious-data/issues/4
-        return nockBack('rpCardData.4.json').then(({
-          nockDone
-        }) => {
-          let targetCardPath = path.join(__dirname, '..', 'data', 'HMK', '01', 'HMK_01-001.json')
-          let creationTimeBefore = fs.statSync(targetCardPath).mtimeMs;
-          let cd = ripper.ripCardData('http://p-memories.com/node/383031', 'http://p-memories.com/images/product/HMK/HMK_01-001.jpg');
-          return expect(cd).rejects.toThrow(/EEXIST/)
-            .then(nockDone)
-        })
-      }
-    );
 
-    it('should cope with a relative P-memories URL', () => {
-      return nockBack('ripCardData.5.json')
-        .then(({ nockDone, context }) => {
-          return ripper.ripCardData('/node/926791')
-            .then((data) => {
-              expect(typeof data).toBe('object');
-              expect(data.number).toEqual('01-001');
-              expect(data.url).toEqual('http://p-memories.com/node/926791');
-              context.assertScopesFinished()
-            })
-            .then(nockDone)
-          })
-        })
+    it('should cope with a relative P-memories URL', async () => {
+        const { completeRecording, assertScopesFinished } = await record("ripCardData5");
+        const data = await ripper.ripCardData('/node/926791')
+        completeRecording();
+        assertScopesFinished();
+        expect(typeof data).toBe('object');
+        expect(data.number).toEqual('01-001');
+        expect(data.url).toEqual('http://p-memories.com/node/926791');
+    })
 
   });
 
@@ -410,7 +303,6 @@ describe('Ripper', () => {
       async () => {
 
         const { completeRecording, assertScopesFinished } = await record("downloadImage1");
-    
         const imageStream = await ripper.downloadImage('http://p-memories.com/images/product/SSSS/SSSS_01-001.jpg');
 
         // put the stream into flowing mode and save the file (straight to /dev/null is fine)
@@ -522,9 +414,9 @@ describe('Ripper', () => {
     })
 
     it('should reject with an Error if setAbbrIndex.json does not exist', () => {
-      jest.doMock(setAbbrIndexPath, () => {
-        return null
-      }, { virtual: true })
+      setAbbrIndexSpy.mockImplementation(() => {
+        return Promise.reject(Error('ENOENT: no such file or directory'))
+      })
       let index = ripper.loadSetAbbrIndex()
       return expect(index).rejects.toThrow(/ENOENT/)
     })
@@ -556,14 +448,18 @@ describe('Ripper', () => {
   })
 
   describe('getSetUrlFromSetAbbr', () => {
+    it('Should call loadSetAbbrIndex()', () => {
+      let url = ripper.getSetUrlFromSetAbbr('HMK');
+      expect(setAbbrIndexSpy).toHaveBeenCalled()
+    })
     it('Should return a promise', () => {
       let url = ripper.getSetUrlFromSetAbbr('HMK')
       return expect(url).toHaveProperty('then');
     })
-    it('Should reject with an error if the Set Index does not exist', () => {
-      jest.doMock(setAbbrIndexPath, () => {
-        return null
-      }, { virtual: true })
+    it('Should throw an error if the Set Index does not exist', () => {
+      setAbbrIndexSpy.mockImplementation(() => {
+        return Promise.reject(Error('ENOENT: no such file or directory'))
+      })
       let url = ripper.getSetUrlFromSetAbbr('HMK')
       return expect(url).rejects.toThrow('ENOENT')
     })
@@ -649,22 +545,16 @@ describe('Ripper', () => {
     })
     it(
       'Should accept no parameters and return an array of objects with sampleCardUrl and setUrl k/v',
-      () => {
-        return nockBack('getImageUrlFromEachSet.1.json')
-          .then(({ nockDone, context }) => {
-             // mock the size of the card_product_list_page to make the test fast
-            return ripper.getImageUrlFromEachSet()
-              .then((imageUrls) => {
-                let indexPath = path.join(__dirname, '..', 'data', 'setAbbrIndex.json')
-                expect(imageUrls).toBeArray()
-                expect(imageUrls[0]).toBeObject()
-                expect(imageUrls[0].setUrl).toBeString()
-                expect(imageUrls[0].sampleCardUrl).toBeString()
-                context.assertScopesFinished()
-              })
-              .then(nockDone)
-          })
-      }, 1000*60*5);
+      async () => {
+        const { completeRecording, assertScopesFinished } = await record("getImageUrlFromEachSet");
+        const imageUrls = await ripper.getImageUrlFromEachSet()
+        completeRecording();
+        assertScopesFinished();
+        expect(imageUrls).toBeArray()
+        expect(imageUrls[0]).toBeObject()
+        expect(imageUrls[0].setUrl).toBeString()
+        expect(imageUrls[0].sampleCardUrl).toBeString()
+    })
   });
 
   describe('createSetAbbreviationIndex', () => {
@@ -681,17 +571,13 @@ describe('Ripper', () => {
     afterEach(() => {
       mockedGetSetUrls.mockRestore()
     })
-    it('should create setAbbrIndex.json in the data folder', () => {
-      return nockBack('createSetAbbreviationIndex.1.json')
-        .then(({ nockDone, context }) => {
-          return ripper.createSetAbbreviationIndex()
-            .then((setAbbrIndexPath) => {
-              expect(setAbbrIndexPath).toEqual(path.join(__dirname, '..', 'data', 'setAbbrIndex.json'))
-              context.assertScopesFinished()
-            })
-            .then(nockDone)
-        })
-    }, 1000*60*3)
+    it('should create setAbbrIndex.json in the data folder', async () => {
+      const { completeRecording, assertScopesFinished } = await record("createSetAbbreviationIndex1");
+      const imageUrls = await ripper.createSetAbbreviationIndex();
+      completeRecording();
+      assertScopesFinished();
+      expect(setAbbrIndexPath).toEqual(path.join(__dirname, '..', 'data', 'setAbbrIndex.json'));
+    })
   })
 
 })

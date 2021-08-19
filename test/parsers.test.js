@@ -6,6 +6,8 @@ const {
   normalizeUrl,
 } = require('../lib/parsers')
 
+const fs = require('fs');
+
 const path = require('path');
 const fixturesPath = path.join(__dirname, '..', 'fixtures')
 
@@ -192,7 +194,7 @@ describe('parsers', () => {
 
     describe('parseCardDataFromHtml', () => {
     it('should get card data from a {String} html', () => {
-      const html = require(path.join(fixturesPath, 'HMK_01-001.html.json'))[0].response
+      const html = fs.readFileSync(path.join(fixturesPath, 'HMK_01-001.html'), { encoding: 'utf-8' })
       return parseCardDataFromHtml(html)
         .then((data) => {
           expect(data).toHaveProperty('number', '01-001')
