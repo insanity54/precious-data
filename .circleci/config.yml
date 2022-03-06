@@ -2,19 +2,17 @@ version: '2.1'
 orbs:
   node: circleci/node@5.0.0
 jobs:
-  test:
-    executor:
-      name: node/default
-      tag: '16'
+  install-node-example:
+    docker:
+      - image: 'cimg/base:stable'
     steps:
       - checkout
-      - node/install-packages:
-          pkg-manager: yarn
-      - run:
-          command: yarn run test
-          name: Run YARN tests
+      - node/install:
+          install-yarn: true
+          node-version: '16.13'
+      - run: node --version
 workflows:
-  node-tests:
+  test_my_app:
     jobs:
-      - test
-
+      - install-node-example
+      - node/test
