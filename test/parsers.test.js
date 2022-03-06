@@ -4,15 +4,51 @@ const {
   parseCardId,
   parseCardDataFromHtml,
   normalizeUrl,
+  parseQuery,
 } = require('../lib/parsers')
 
 const fs = require('fs');
-
+const debug = require('debug')('precious-data');
 const path = require('path');
 const fixturesPath = path.join(__dirname, '..', 'fixtures')
 
 
 describe('parsers', () => {
+
+  describe('parseQuery', () => {
+    it("should accept 'ClariS' and return { setAbbr: 'ClariS', card: '*' }", () => {
+      const order = parseQuery('ClariS');
+      expect(order).toBeInstanceOf(Object);
+      expect(order).toStrictEqual({
+        setAbbr: 'ClariS',
+        card: '*'
+      })
+    })
+    it("should accept 'HMK' and return { setAbbr: 'HMK', card: '*' }", () => {
+      const order = parseQuery('HMK');
+      expect(order).toBeInstanceOf(Object);
+      expect(order).toStrictEqual({
+        setAbbr: 'HMK',
+        card: '*'
+      })
+    })
+    it("should accept 'OREIMO 01-001' and return { setAbbr: 'OREIMO', card: '01-001' }", () => {
+      const order = parseQuery('OREIMO 01-001');
+      expect(order).toBeInstanceOf(Object);
+      expect(order).toStrictEqual({
+        setAbbr: 'OREIMO',
+        card: '01-001'
+      })
+    })
+    it("should accept '03-001' and return { setAbbr: '*', card: '03-001' }", () => {
+      const order = parseQuery('03-001');
+      expect(order).toBeInstanceOf(Object);
+      expect(order).toStrictEqual({
+        setAbbr: '*',
+        card: '03-001'
+      })
+    })
+  })
 
   describe('normalizeUrl', () => {
     it('should take a partial URL and make it a full URL.', () => {
@@ -197,6 +233,7 @@ describe('parsers', () => {
       const html = fs.readFileSync(path.join(fixturesPath, 'HMK_01-001.html'), { encoding: 'utf-8' })
       return parseCardDataFromHtml(html)
         .then((data) => {
+          debug(data)
           expect(data).toHaveProperty('number', '01-001')
           expect(data).toHaveProperty('rarity', 'SR（サイン）')
           expect(data).toHaveProperty('setName', '初音ミク')
