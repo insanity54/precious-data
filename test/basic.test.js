@@ -1,16 +1,13 @@
-const nock = require('nock');
-const td = require('testdouble');
-const request = require('request');
+const test = require('ava');
+const { setupRecorder } = require('nock-record');
 
-module.exports = {
-  'should support verify': (done) => {
-    const api = td.api('https://example.com')
 
-    request('https://example.com/api', () => {
-      td.verify(api.get('/api'))
-      done()
-    })
+test.beforeEach((t) => {
+    t.context.record = setupRecorder();
+})
 
-    
-  }
-}
+test('basic', (t) => {
+  t.context.record('basic');
+  const idk = true;
+  t.true(idk);
+});

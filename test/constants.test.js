@@ -11,82 +11,82 @@ const fixturesPath = path.join(__dirname, '..', 'fixtures')
 
 const setAbbrIndexFixture = require('../fixtures/setAbbrIndex.json');
 
-describe('constants', () => {
-  describe('cardIdRegex', () => {
-    it("should not match a setless card id such as '03-011'", () => {
+module.exports = {
+  'cardIdRegex': {
+    "should not match a setless card id such as '03-011'": function () {
       const regexResult = cardIdRegex.exec('03-011');
       expect(regexResult).toBeNull();
-    })
-  })
-  describe('setAbbrRegex', () => {
-    it('should match HMK', () => {
+    }
+  },
+  'setAbbrRegex': {
+    'should match HMK': function () {
         expect(setAbbrRegex.exec('HMK')).not.toBeNull();
-    })
-    it('should match OREIMO', () => {
+    },
+    'should match OREIMO': function () {
         expect(setAbbrRegex.exec('OREIMO')).not.toBeNull();
-    })
-    it('should match BKM', () => {
+    },
+    'should match BKM': function () {
         expect(setAbbrRegex.exec('BKM')).not.toBeNull();
-    })
-    it('should match SSSS', () => {
+    },
+    'should match SSSS': function () {
         expect(setAbbrRegex.exec('SSSS')).not.toBeNull();
-    })
-    it('should match ookami', () => {
+    },
+    'should match ookami': function () {
         expect(setAbbrRegex.exec('ookami')).not.toBeNull();
-    })
-    it('should match MG2', () => {
+    },
+    'should match MG2': function () {
         expect(setAbbrRegex.exec('MG2')).not.toBeNull();
-    })
-    it("should match 'HMK_01-001'", () => {
+    },
+    "should match 'HMK_01-001'": function () {
       const match = setAbbrRegex.exec('HMK_01-001')
       expect(match).not.toBeNull();
       expect(match[1]).toEqual('HMK');
-    })
-    it("should match 'HMK 01-001'", () => {
+    },
+    "should match 'HMK 01-001'": function () {
       const match = setAbbrRegex.exec('HMK 01-001')
       expect(match).not.toBeNull();
       expect(match[1]).toEqual('HMK');
-    })
-    it("should match 'OREIMO 01-001'", () => {
+    },
+    "should match 'OREIMO 01-001'": function () {
       const match = setAbbrRegex.exec('OREIMO 02-001')
       expect(match).not.toBeNull();
       expect(match[1]).toEqual('OREIMO');
-    })
-    it("should match 'KON3 03-056a'", () => {
+    },
+    "should match 'KON3 03-056a'": function () {
       const match = setAbbrRegex.exec('KON3 03-056a')
       expect(match).not.toBeNull();
       expect(match[1]).toEqual('KON3');
-    })
-    xit("should find HMK in 'http://p-memories.com/images/product/HMK/HMK_01-001.jpg'", () => {
-      const match = setAbbrRegex.exec('http://p-memories.com/images/product/HMK/HMK_01-001.jpg')
-      expect(match).not.toBeNull();
-      expect(match[1]).toEqual('HMK')
-    })
+    },
+    // xit("should find HMK in 'http://p-memories.com/images/product/HMK/HMK_01-001.jpg'": function () {
+    //   const match = setAbbrRegex.exec('http://p-memories.com/images/product/HMK/HMK_01-001.jpg')
+    //   expect(match).not.toBeNull();
+    //   expect(match[1]).toEqual('HMK')
+    // },
 
     // expected negative matches are as follows
 
-    it("should not match '03-001'", () => {
+    "should not match '03-001'": function () {
       expect(setAbbrRegex.exec('03-001')).toBeNull();
-    })
-    it("should not match 'XO-003'", () => {
+    },
+    "should not match 'XO-003'": function () {
       expect(setAbbrRegex.exec('XO-003')).toBeNull();
-    })
-    it("should not match '05-065a'", () => {
+    },
+    "should not match '05-065a'": function () {
       expect(setAbbrRegex.exec('05-065a')).toBeNull();
-    })
-  })
-  describe('setlessCardIdRegex', () => {
-    it("should match '03-011'", () => {
+    },
+  },
+  'setlessCardIdRegex': {
+    "should match '03-011'": function () {
         expect(setlessCardIdRegex.exec('03-001')).not.toBeNull();
-    })
-    it("should match '01-001'", () => {
+    },
+    "should match '01-001'": function () {
         expect(setlessCardIdRegex.exec('01-001')).not.toBeNull();
-    })
-    it("should match '05-065a' (parallel cards)", () => {
+    },
+    "should match '05-065a' (parallel cards)": function () {
         expect(setlessCardIdRegex.exec('05-065a')).not.toBeNull();
-    })
-    it("should match 'XO-003' (joke cards)", () => {
+    },
+    "should match 'XO-003' (joke cards)": function () {
         expect(setlessCardIdRegex.exec('XO-003')).not.toBeNull();
-    })
-  })
-})
+    }
+  }
+}

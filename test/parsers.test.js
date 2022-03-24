@@ -13,54 +13,54 @@ const path = require('path');
 const fixturesPath = path.join(__dirname, '..', 'fixtures')
 
 
-describe('parsers', () => {
+module.exports = {
 
-  describe('parseQuery', () => {
-    it("should accept 'ClariS' and return { setAbbr: 'ClariS', card: '*' }", () => {
+  "parseQuery": {
+    "should accept 'ClariS' and return { setAbbr: 'ClariS', card: '*' }": function () {
       const order = parseQuery('ClariS');
       expect(order).toBeInstanceOf(Object);
       expect(order).toStrictEqual({
         setAbbr: 'ClariS',
         card: '*'
       })
-    })
-    it("should accept 'HMK' and return { setAbbr: 'HMK', card: '*' }", () => {
+    },
+    "should accept 'HMK' and return { setAbbr: 'HMK', card: '*' }": function () {
       const order = parseQuery('HMK');
       expect(order).toBeInstanceOf(Object);
       expect(order).toStrictEqual({
         setAbbr: 'HMK',
         card: '*'
       })
-    })
-    it("should accept 'OREIMO 01-001' and return { setAbbr: 'OREIMO', card: '01-001' }", () => {
+    },
+    "should accept 'OREIMO 01-001' and return { setAbbr: 'OREIMO', card: '01-001' }": function () {
       const order = parseQuery('OREIMO 01-001');
       expect(order).toBeInstanceOf(Object);
       expect(order).toStrictEqual({
         setAbbr: 'OREIMO',
         card: '01-001'
       })
-    })
-    it("should accept '03-001' and return { setAbbr: '*', card: '03-001' }", () => {
+    },
+    "should accept '03-001' and return { setAbbr: '*', card: '03-001' }": function () {
       const order = parseQuery('03-001');
       expect(order).toBeInstanceOf(Object);
       expect(order).toStrictEqual({
         setAbbr: '*',
         card: '03-001'
-      })
-    })
-  })
+      });
+    }
+  },
 
-  describe('normalizeUrl', () => {
-    it('should take a partial URL and make it a full URL.', () => {
+  "normalizeUrl": {
+    "should take a partial URL and make it a full URL.": function () {
       let url = normalizeUrl('/card_product_list_page?page=1&field_title_nid=280695-%E5%88%9D%E9%9F%B3%E3%83%9F%E3%82%AF&s_flg=on');
       expect(url).toEqual(
         'http://p-memories.com/card_product_list_page?page=1&field_title_nid=280695-%E5%88%9D%E9%9F%B3%E3%83%9F%E3%82%AF&s_flg=on'
-      )
-    });
-  });
+      );
+    }
+  },
 
 
-  describe('parseCardId', () => {
+  "parseCardId": {
 
     /**
       test strings for Rubular/regexr testing:
@@ -74,19 +74,19 @@ describe('parsers', () => {
       KON 01-068
 
      */
-    it('should throw if receiving no parameter', () => {
+    "should throw if receiving no parameter": function () {
       return expect(() => {
         parseCardId()
       }).toThrow(/Got undefined/)
-    })
-    it('should throw an error if receiving a string that does match the required format', () => {
+    },
+    
+    "should throw an error if receiving a string that does match the required format": function () {
       return expect(() => {
         parseCardId('taco bell')
-      }).toThrow(/cardId is not valid/)
-    })
-    it(
-      'should return an object with setAbbr, release, number, and num',
-      () => {
+      }).toThrow(/cardId is not valid/);
+    },
+    
+    'should return an object with setAbbr, release, number, and num': function() {
         let p = parseCardId('HMK_01-001');
         expect(p.setAbbr).toEqual('HMK');
         expect(p.release).toEqual('01');
@@ -94,10 +94,9 @@ describe('parsers', () => {
         expect(p.num).toEqual('001');
         expect(p.id).toEqual('HMK 01-001');
         expect(p.variation).toEqual('');
-      }
-    );
+    },
 
-    it('should accept a relative image URL as param', () => {
+    "should accept a relative image URL as param": function () {
       let p = parseCardId('/images/product/YYY2/YYY2_02-001.jpg');
       expect(p.setAbbr).toEqual('YYY2');
       expect(p.release).toEqual('02');
@@ -105,9 +104,9 @@ describe('parsers', () => {
       expect(p.num).toEqual('001');
       expect(p.id).toEqual('YYY2 02-001');
       expect(p.variation).toEqual('');
-    });
+    },
 
-    it('should accept an image URL as param', () => {
+    "should accept an image URL as param": function () {
       let p = parseCardId('http://p-memories.com/images/product/HMK/HMK_01-001.jpg');
       expect(p.setAbbr).toEqual('HMK');
       expect(p.release).toEqual('01');
@@ -115,13 +114,13 @@ describe('parsers', () => {
       expect(p.num).toEqual('001');
       expect(p.id).toEqual('HMK 01-001');
       expect(p.variation).toEqual('');
-    });
+    },
 
-    it('should reject when the card ID is not valid', () => {
+    "should reject when the card ID is not valid": function () {
       expect(parseCardId.bind(this, 'tacobell')).toThrow();
-    });
+    },
 
-    it('should handle a card ID with a letter as the release', () => {
+    "should handle a card ID with a letter as the release": function () {
       let p = parseCardId('SSSS P-001');
       expect(p.setAbbr).toEqual('SSSS');
       expect(p.release).toEqual('P');
@@ -129,22 +128,19 @@ describe('parsers', () => {
       expect(p.num).toEqual('001');
       expect(p.id).toEqual('SSSS P-001');
       expect(p.variation).toEqual('');
-    });
+    },
 
-    it(
-      'should handle a card ID with a letter variation at the end',
-      () => {
-        let p = parseCardId('http://p-memories.com/images/product/GPFN/GPFN_01-030a.jpg');
-        expect(p.setAbbr).toEqual('GPFN');
-        expect(p.release).toEqual('01');
-        expect(p.number).toEqual('01-030a');
-        expect(p.num).toEqual('030');
-        expect(p.id).toEqual('GPFN 01-030a');
-        expect(p.variation).toEqual('a');
-      }
-    )
+    'should handle a card ID with a letter variation at the end': function () {
+      let p = parseCardId('http://p-memories.com/images/product/GPFN/GPFN_01-030a.jpg');
+      expect(p.setAbbr).toEqual('GPFN');
+      expect(p.release).toEqual('01');
+      expect(p.number).toEqual('01-030a');
+      expect(p.num).toEqual('030');
+      expect(p.id).toEqual('GPFN 01-030a');
+      expect(p.variation).toEqual('a');
+    },
 
-    it('should handle a card ID an underscore in the setAbbr', () => {
+    "should handle a card ID an underscore in the setAbbr": function () {
       let p = parseCardId('PM_HS_03-008');
       expect(p.setAbbr).toEqual('PM_HS');
       expect(p.release).toEqual('03');
@@ -152,53 +148,44 @@ describe('parsers', () => {
       expect(p.num).toEqual('008');
       expect(p.id).toEqual('PM_HS 03-008');
       expect(p.variation).toEqual('');
-    });
+    },
 
-    it(
-      'should handle a cardID with underscores and a relative URL',
-      () => {
-        let p = parseCardId('/images/product/PM_HS/PM_HS_01-002.jpg');
-        expect(p.setAbbr).toEqual('PM_HS')
-        expect(p.release).toEqual('01')
-        expect(p.number).toEqual('01-002')
-        expect(p.num).toEqual('002')
-        expect(p.id).toEqual('PM_HS 01-002')
-        expect(p.variation).toEqual('')
-      }
-    )
+    'should handle a cardID with underscores and a relative URL': function () {
+      let p = parseCardId('/images/product/PM_HS/PM_HS_01-002.jpg');
+      expect(p.setAbbr).toEqual('PM_HS')
+      expect(p.release).toEqual('01')
+      expect(p.number).toEqual('01-002')
+      expect(p.num).toEqual('002')
+      expect(p.id).toEqual('PM_HS 01-002')
+      expect(p.variation).toEqual('')
+    },
 
-    it(
-      'should handle a cardID with multiple underscores in the set name',
-      () => {
-        let p = parseCardId('/images/product/PM_K-ON_Part2/PM_K-ON_Part2_02-048.jpg');
-        expect(p.setAbbr).toEqual('PM_K-ON_Part2')
-        expect(p.release).toEqual('02')
-        expect(p.number).toEqual('02-048')
-        expect(p.num).toEqual('048')
-        expect(p.id).toEqual('PM_K-ON_Part2 02-048')
-        expect(p.variation).toEqual('')
-      }
-    );
+    'should handle a cardID with multiple underscores in the set name': function () {
+      let p = parseCardId('/images/product/PM_K-ON_Part2/PM_K-ON_Part2_02-048.jpg');
+      expect(p.setAbbr).toEqual('PM_K-ON_Part2')
+      expect(p.release).toEqual('02')
+      expect(p.number).toEqual('02-048')
+      expect(p.num).toEqual('048')
+      expect(p.id).toEqual('PM_K-ON_Part2 02-048')
+      expect(p.variation).toEqual('')
+    },
 
-    it(
-      'should handle a cardID with a space between the setAbbr and the release',
-      () => {
-        let p = parseCardId('HMK 02-003')
-        expect(p.setAbbr).toEqual('HMK')
-      })
+    'should handle a cardID with a space between the setAbbr and the release': function () {
+      let p = parseCardId('HMK 02-003')
+      expect(p.setAbbr).toEqual('HMK')
+    },
 
-    it('should handle GPFN P-004a',
-      () => {
-        let p = parseCardId('GPFN P-004a')
-        expect(p.setAbbr).toEqual('GPFN')
-        expect(p.release).toEqual('P')
-        expect(p.number).toEqual('P-004a')
-        expect(p.num).toEqual('004')
-        expect(p.id).toEqual('GPFN P-004a')
-        expect(p.variation).toEqual('a')
-      })
+    "should handle GPFN P-004a": function () {
+      let p = parseCardId('GPFN P-004a')
+      expect(p.setAbbr).toEqual('GPFN')
+      expect(p.release).toEqual('P')
+      expect(p.number).toEqual('P-004a')
+      expect(p.num).toEqual('004')
+      expect(p.id).toEqual('GPFN P-004a')
+      expect(p.variation).toEqual('a')
+    },
 
-    it('should handle GPFN_P-004a', () => {
+    "should handle GPFN_P-004a": function () {
       let p = parseCardId('GPFN_P-004a');
       expect(p.setAbbr).toEqual('GPFN')
       expect(p.release).toEqual('P')
@@ -206,30 +193,30 @@ describe('parsers', () => {
       expect(p.num).toEqual('004')
       expect(p.id).toEqual('GPFN P-004a')
       expect(p.variation).toEqual('a')
-    });
-  });
+    }
+  },
 
-  describe('splitTextList', () => {
-    it('should return an empty array if not receiving anything', () => {
+  "splitTextList": {
+    "should return an empty array if not receiving anything": function () {
       const list = splitTextList()
       expect(list).toStrictEqual([])
-    })
-    it('should return an empty array if receiving an empty string', () => {
+    },
+    "should return an empty array if receiving an empty string": function () {
       const list = splitTextList('')
       expect(list).toStrictEqual([])
-    })
-    it('should convert a {String} list into an array of strings', () => {
+    },
+    "should convert a {String} list into an array of strings": function () {
       const list = splitTextList('ヘッドフォン、音楽')
       expect(list).toStrictEqual([
         'ヘッドフォン',
         '音楽'
       ])
-    })
-  })
+    },
+  },
 
 
-    describe('parseCardDataFromHtml', () => {
-    it('should get card data from a {String} html', () => {
+  "parseCardDataFromHtml": {
+    "should get card data from a {String} html": function () {
       const html = fs.readFileSync(path.join(fixturesPath, 'HMK_01-001.html'), { encoding: 'utf-8' })
       return parseCardDataFromHtml(html)
         .then((data) => {
@@ -254,13 +241,11 @@ describe('parsers', () => {
           expect(data).toHaveProperty('num', '001')
           expect(data).toHaveProperty('release', '01')
           expect(data).toHaveProperty('id', 'HMK 01-001')
-        })
-    })
+        });
+    },
 
-    it('should reject to throw an error if not receiving any param', () => {
+    "should reject to throw an error if not receiving any param": function () {
       return expect(parseCardDataFromHtml()).rejects.toThrow('parameter')
-    })
-  })
-
-
-})
+    }
+  }
+}

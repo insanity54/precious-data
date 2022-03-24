@@ -5,10 +5,10 @@ const { setupRecorder } = require('nock-record');
 
 const record = setupRecorder();
 
+console.log('sex me,please')
 
-describe('query', () => {
-  jest.setTimeout(30000);
-  it('should return a {Promise} results and an {EventEmitter} events', async () => {
+module.exports = {
+  'should return a {Promise} results and an {EventEmitter} events': async function () {
     const { completeRecording, assertScopesFinished } = await record("query1");
     const { results, events } = query('HMK_01-001');
     expect(results).toBeInstanceOf(Promise);
@@ -16,29 +16,29 @@ describe('query', () => {
     await results;
     completeRecording();
     assertScopesFinished();
-  })
-  it('should accept a set name as its only parameter', async () => {
+  },
+  'should accept a set name as its only parameter': function () {
     expect(() => query('ClariS')).not.toThrow();
-  })
-  it('should throw if not receiving an argument', () => {
+  },
+  'should throw if not receiving an argument': function () {
     expect(() => query()).toThrow();
-  })
-  it('should accept a wildcard as input', async () => {
+  },
+  'should accept a wildcard as input': async function () {
     const { completeRecording, assertScopesFinished } = await record("query2");
     const { results, events } = query('*');
     await results
     completeRecording();
     assertScopesFinished();
-  })
-  it('should expose properties for monitoring query progress', async () => {
+  },
+  'should expose properties for monitoring query progress': async function () {
     const { completeRecording, assertScopesFinished } = await record("query3");
     const { results, events } = query('HMK');
     const cards = await results;
     completeRecording();
     assertScopesFinished();
     expect(cards.length).toBeGreaterThan(0);
-  })
-  it('should respond with {POJO} card data as a result of a query', async () => {
+  },
+  'should respond with {POJO} card data as a result of a query': async function () {
     const { completeRecording, assertScopesFinished } = await record("query4");
     const { results } = query('HMK_01-001');
     const { cardData } = await results;
@@ -46,5 +46,5 @@ describe('query', () => {
     expect(cardData).toHaveProperty('name', '初音 ミク');
     expect(cardData).toHaveProperty('rarity', 'SR');
     expect(cardData).toHaveProperty('image', 'http://p-memories.com/images/product/HMK/HMK_01-001.jpg');
-  })
-})
+  }
+}

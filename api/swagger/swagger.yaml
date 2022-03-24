@@ -1,0 +1,61 @@
+swagger: "2.0"
+info:
+  version: "0.0.1"
+  title: precious-data
+# during dev, should point to your local machine
+host: localhost:10010
+# basePath prefixes all resource paths 
+basePath: /
+# 
+schemes:
+  # tip: remove http to make production-grade
+  - http
+  - https
+# format of bodies a client can send (Content-Type)
+consumes:
+  - application/json
+# format of the responses to the client (Accepts)
+produces:
+  - application/json
+  - image/jpeg
+paths:
+  /image:
+    x-swagger-router-controller: image
+    get:
+      description: Returns a card image
+      operationId: image
+      parameters:
+        - name: number
+          in: query
+          description: The card number.
+          required: true
+          type: string
+        - name: setAbbr
+          in: query
+          description: The set abbreviation the card belongs to.
+          required: true
+          type: string
+      produces:
+        - image/jpeg
+      responses:
+        "200":
+          description: Success
+          schema:
+            # a pointer to a definition
+            $ref: "#/definitions/ImageResponse"
+        "404":
+          description: Card Image Not Found
+          schema:
+            $ref: "#/definitions/ImageResponse"
+        "500":
+          description: Server Error
+          schema:
+            $ref: "#/definitions/ImageResponse"
+
+  /swagger:
+    x-swagger-pipe: swagger_raw
+# complex objects have schema definitions
+definitions:
+  ImageResponse:
+    type: string
+    format: binary
