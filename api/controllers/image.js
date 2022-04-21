@@ -3,6 +3,10 @@
 
 var util = require('util');
 const Store = require('../../lib/Store');
+const PMemoriesCom = require('../../lib/PMemoriesCom');
+const Parse = require('../../lib/Parse');
+const Fetch = require('../../lib/Fetch');
+const Game = require('../../lib/Game');
 const path = require('path');
 const fsp = require('fs').promises;
 const debug = require('debug')('precious-data');
@@ -14,6 +18,12 @@ module.exports = {
 
 
 async function image(req, res) {
+  const fetch = new Fetch();
+  const parse = new Parse();
+  const store = new Store();
+  const pm = new PMemoriesCom(fetch, parse);
+  const game = new Game(pm, fetch, parse, store);
+
   var number = req.query.number;
   var setAbbr = req.query.setAbbr;
 
@@ -39,6 +49,7 @@ async function image(req, res) {
 
 
   } catch (e) {
+    console.error(e);
 
     // generate an image which communicates the error
     const errorImage = await sharp({
@@ -52,7 +63,7 @@ async function image(req, res) {
     .withMetadata({
       /** @todo I dont think this metadata works. 
        *        When opening the image in GIMP
-       *        and viewing EXIF metadata, I see no error.
+       *        and viewing EXIF metadata, I see no such data.
        *        I think a better thing to do is
        *        create opposite-coloured text with the 
        *        error message atop the background

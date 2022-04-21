@@ -57,4 +57,23 @@ test('loadCards', async (t) => {
     expect(cards[0]).to.be.instanceof(Card);
     expect(cards).to.be.an('array');
     expect(cards.length).to.be.above(500);
-})
+});
+
+
+test('findCard', async (t) => {
+    const { completeRecording, assertScopesFinished } = await record('findCard3');
+    const fetch = new Fetch();
+    const store = new Store();
+    const parse = new Parse(fetch, store);
+    const pm = new PM(fetch, parse);
+    const game = new Game(pm, fetch, parse, store);
+    const card = await game.findCard({
+        setAbbr: 'HMK',
+        number: '01-001'
+    });
+    completeRecording();
+    assertScopesFinished();
+    expect(card).to.be.instanceof(Card);
+    expect(card).to.have.property('ap', '40');
+    expect(card).to.have.property('setAbbr', 'HMK');
+});

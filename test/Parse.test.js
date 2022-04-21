@@ -27,7 +27,6 @@ test('getCards - accept CardSet page', async (t) => {
   const cards = t.context.parse.getCards(html[0]);
   expect(cards).to.be.an('array');
   expect(cards[0]).to.be.instanceOf(Card);
-  console.log(cards[0]['image']);
   expect(cards[0]).to.have.property('image', 'http://p-memories.com/images/product/ClariS/ClariS_P-001.jpg');
   expect(cards[0]).to.have.property('url', 'http://p-memories.com/node/241834');
   expect(cards[0]).to.have.property('ap', '-');
@@ -43,7 +42,6 @@ test('getCards - accept Card page', async (t) => {
   const cards = t.context.parse.getCards(html[0]);
   expect(cards).to.be.an('array');
   expect(cards[0]).to.be.instanceOf(Card);
-  console.log(cards[0]['image']);
   expect(cards[0]).to.have.property('image', 'http://p-memories.com/images/product/HMK/HMK_01-001.jpg');
   expect(cards[0]).to.have.property('url', 'http://p-memories.com/node/383031');
   expect(cards[0]).to.have.property('ap', '40');
@@ -95,4 +93,18 @@ test('getCardSetAbbr', async (t) => {
   const bodies = await t.context.fetch.fetchBodies(mikuPage);
   const setAbbr = t.context.parse.getCardSetAbbr(bodies[0]);
   expect(setAbbr).to.equal('HMK');
+})
+
+
+test('getCardFromSearchResults', async (t) => {
+  const { completeRecording, assertScopesFinished } = await record("getCardFromSearchResults");
+  const bodies = await t.context.fetch.fetchBodies('http://p-memories.com/card_product_list_page?s_flg=on&field_title_nid=&field_type_value=&product_title=&field_color_value=&keyword_card=01-039&button=%E6%A4%9C+%E7%B4%A2');
+  const card = new Card(null, null, null, {
+    setAbbr: 'GP',
+    number: '01-002'
+  });
+  const result = t.context.parse.getCardFromSearchResults(card, bodies[0]);
+  completeRecording();
+  assertScopesFinished();
+  expect(result).to.be.instanceof(Card);
 })

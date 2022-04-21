@@ -41,10 +41,49 @@ test('get() should return a data', (t) => {
 });
 
 
-test('rip', async (t) => {
-  const { completeRecording, assertScopesFinished } = await record("getCardUrlsFromSetPage");
+test('rip - we know the card url', async (t) => {
+  const { completeRecording, assertScopesFinished } = await record("cardRip1");
+  // td.when(
+  //     FakeStore.prototype.rip()
+  //     .thenReturn(
+  //       new Card(fetch, parse, store, {
+  //         number: '01-001',
+  //         release: '01',
+  //         num: '001',
+  //         name: '初音ミク'
+  //       }))
+  const fetch = new Fetch();
+  const store = td.instance(Store);
+  const parse = new Parse(fetch, store);
+  const card = new Card(fetch, parse, store, {
+    setAbbr: 'HMK',
+    num: '001',
+    release: '01',
+    url: 'http://p-memories.com/node/383031'
+  });
+  await card.rip();
+  assertScopesFinished();
+  completeRecording();
+  expect(card).to.have.property('ap', '40');
+})
 
-  const card = new Card(null, null, null, {
+
+test('rip - we dont have the card url in memory but it is in db', async (t) => {
+  const { completeRecording, assertScopesFinished } = await record("cardRip2");
+  const fetch = new Fetch();
+  const store = td.instance(Store);
+  td.when(store.findCard(td.matchers.anything()))
+    .thenReturn(
+      new Card(null, null, null, {
+        setAbbr: 'HMK',
+        number: '01-001',
+        release: '01',
+        num: '001',
+        url: 'http://p-memories.com/node/383031'
+      })
+    )
+  const parse = new Parse(fetch, store);
+  const card = new Card(fetch, parse, store, {
     setAbbr: 'HMK',
     num: '001',
     release: '01'
@@ -55,6 +94,27 @@ test('rip', async (t) => {
   expect(card).to.have.property('url', 'http://p-memories.com/node/383031');
 })
 
+
+test('rip - url neither in memory nor db', async (t) => {
+  const { completeRecording, assertScopesFinished } = await record("cardRip3");
+  const fetch = new Fetch();
+  const store = td.instance(Store);
+  td.when(store.findCard(td.matchers.anything()))
+    .thenReject(
+      new Error('No card found')
+    )
+  const parse = new Parse(fetch, store);
+  const card = new Card(fetch, parse, store, {
+    setAbbr: 'HMK',
+    num: '001',
+    release: '01'
+  });
+  await card.rip();
+  assertScopesFinished();
+  completeRecording();
+  expect(card).to.have.property('url', 'http://p-memories.com/node/383031');
+  expect(card).to.have.property('ap', '40');
+})
 
 test('save() should save card to storage', async (t) => {
   const cardSet = new CardSet(this.fetch, this.parse, this.fakeStore, {
@@ -119,7 +179,7 @@ test('find - card does not exist in db', async (t) => {
       FakeStore.prototype.findCard(
         td.matchers.anything())
       )
-      .thenThrow(new Error('Card not found!'));
+      .thenResolve(new Error('Card not found!'));
     const parse = new Parse(fetch, store);
     
 
@@ -133,7 +193,6 @@ test('find - card does not exist in db', async (t) => {
     completeRecording();
     assertScopesFinished();
     expect(card).to.be.instanceof(Card);
-    expect(card).to.have.property('release', '01');
-    expect(card).to.have.property('num', '001');
-    expect(card).to.have.property('names', '初音ミク');
+    expect(card).to.have.property('number', '01-001');
+    expect(card).to.have.property('name', '初音　ミク');
 });
