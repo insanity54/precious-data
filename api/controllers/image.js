@@ -12,6 +12,7 @@ const fsp = require('fs').promises;
 const debug = require('debug')('precious-data');
 const sharp = require('sharp');
 
+
 module.exports = {
   image: image
 };
@@ -27,20 +28,21 @@ async function image(req, res) {
   var number = req.query.number;
   var setAbbr = req.query.setAbbr;
 
-  const cardData = {
-    number,
-    setAbbr
-  }
-
-  debug(`looking up card data ${cardData.number}, ${cardData.setAbbr}`)
-
-  // We are responding with an image no matter what
-  res.set('Content-Type', 'image/jpeg');
-
-
   try {
+    const cardData = {
+      number,
+      setAbbr
+    }
+
+    debug(`looking up card data ${cardData.number}, ${cardData.setAbbr}`)
+
+    // We are responding with an image no matter what
+    res.set('Content-Type', 'image/jpeg');
+
+
     const card = await game.findCard(cardData);
 
+    console.log('  [q] teh card exists in the db')
     debug(card)
 
     const imageBlob = card.imageBlob;
@@ -51,27 +53,13 @@ async function image(req, res) {
   } catch (e) {
     console.error(e);
 
-    // generate an image which communicates the error
+    // generate an image which communicates an error
     const errorImage = await sharp({
       create: {
         width: 372,
         height: 520,
         channels: 3,
         background: { r: 255, g: 0, b: 255, alpha: 1 },
-      }
-    })
-    .withMetadata({
-      /** @todo I dont think this metadata works. 
-       *        When opening the image in GIMP
-       *        and viewing EXIF metadata, I see no such data.
-       *        I think a better thing to do is
-       *        create opposite-coloured text with the 
-       *        error message atop the background
-       */
-      exif: {
-        "preciousdata": {
-          error: e.message 
-        }
       }
     })
     .jpeg({

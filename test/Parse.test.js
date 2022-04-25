@@ -108,3 +108,4 @@ test('getCardFromSearchResults', async (t) => {
   assertScopesFinished();
   expect(result).to.be.instanceof(Card);
 })
+

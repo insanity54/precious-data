@@ -1,0 +1,879 @@
+[
+  {
+    "setAbbrVarieties": [
+      "ACH", "Ach"
+    ],
+    "setName": "Aチャンネル",
+    "setNameEn": "A-Channel",
+    "releaseDate": "2012-01-27"
+  },
+  {
+    "setAbbrVarieties": [
+      "AHB"
+    ],
+    "setName": "あの日見た花の名前を僕達はまだ知らない。",
+    "setNameEn": "anohana: The Flower We Saw That Day",
+    "releaseDate": "2011-12-22"
+  },
+  {
+    "setAbbrVarieties": [
+      "AKB"
+    ],
+    "setName": "AKB0048",
+    "setNameEn": "AKB0048",
+    "releaseDate": "2013-01-25"
+  },
+  {
+    "setAbbrVarieties": [
+      "AMG"
+    ],
+    "setName": "アマガミSS+ plus",
+    "setNameEn": "Amagami SS+ plus",
+    "releaseDate": "2013-12-27"
+  },
+  {
+    "setAbbrVarieties": [
+      "AW"
+    ],
+    "setName": "学戦都市アスタリスク",
+    "setNameEn": "The Asterisk War",
+    "releaseDate": "2016-05-27"
+  },
+  {
+    "setAbbrVarieties": [
+      "BBD"
+    ],
+    "setName": "ぼくたちは勉強ができない！",
+    "setNameEn": "We Never Learn: BOKUBEN",
+    "releaseDate": "2020-05-29"
+  },
+  {
+    "setAbbrVarieties": [
+      "BKM", "PM_BKM"
+    ],
+    "setName": "化物語",
+    "setNameEn": "Bakemonogatari",
+    "releaseDate": "2012-05-28"
+  },
+  {
+    "setAbbrVarieties": [
+      "CCS"
+    ],
+    "setName": "カードキャプターさくら",
+    "setNameEn": "Cardcaptor Sakura",
+    "releaseDate": "2014-05-28"
+  },
+  {
+    "setAbbrVarieties": [
+      "ClariS"
+    ],
+    "setName": "ClariS",
+    "setNameEn": "Claris",
+    "releaseDate": "2013"
+  },
+  {
+    "setAbbrVarieties": [
+      "CP"
+    ],
+    "setName": "カーニバル・ファンタズム",
+    "setNameEn": "Carnival Phantasm",
+    "releaseDate": "2012-04-27"
+  },
+  {
+    "setAbbrVarieties": [
+      "DDB"
+    ],
+    "setName": "ハイスクールＤ×Ｄ ＢｏｒＮ",
+    "setNameEn": "High School DxD BorN",
+    "releaseDate": "2016-06-08"
+  },
+  {
+    "setAbbrVarieties": [
+      "DDH"
+    ],
+    "setName": "ハイスクールＤ×Ｄ HERO",
+    "setNameEn": "High School DxD Hero",
+    "releaseDate": "2018-12-12"
+  },
+  {
+    "setAbbrVarieties": [
+      "DNP"
+    ],
+    "setName": "電波女と青春男",
+    "setNameEn": "Denpa Onna",
+    "releaseDate": "2011-12-16"
+  },
+  {
+    "setAbbrVarieties": [
+      "DNMC"
+    ],
+    "setName": "劇場版 ダンジョンに出会いを求めるのは間違っているだろうか ―オリオンの矢―",
+    "setNameEn": "Is It Wrong to Try to Pick Up Girls in a Dungeon?: Arrow of the Orion",
+    "releaseDate": "2019-09-27"
+  },
+  {
+    "setAbbrVarieties": [
+      "DNMC2"
+    ],
+    "setName": "ダンジョンに出会いを求めるのは間違っているだろうかⅡ",
+    "setNameEn": "Is It Wrong to Try to Pick Up Girls in a Dungeon? II",
+    "releaseDate": "2020-12-18"
+  },
+  {
+    "setAbbrVarieties": [
+      "NUKN"
+    ],
+    "setName": "私、能力は平均値でって言ったよね！",
+    "setNameEn": "Didn't I Say to Make My Abilities Average in the Next Life?!",
+    "releaseDate": "2020-07-24"
+  },
+  {
+    "setAbbrVarieties": [
+      "ERMG"
+    ],
+    "setName": "エロマンガ先生",
+    "setNameEn": "Eromanga Sensei",
+    "releaseDate": "2018-03-30"
+  },
+  {
+    "setAbbrVarieties": [
+      "FA"
+    ],
+    "setName": "フレームアームズ・ガール",
+    "setNameEn": "Frame Arms Girl",
+    "releaseDate": "2018-08-24"
+  },
+  {
+    "setAbbrVarieties": [
+      "GG"
+    ],
+    "setName": "がっこうぐらし！",
+    "setNameEn": "Gakkougurashi! (School-Live!)",
+    "releaseDate": "2016-02-12"
+  },
+  {
+    "setAbbrVarieties": [
+      "GOTO"
+    ],
+    "setName": "五等分の花嫁",
+    "setNameEn": "The Quintessential Quintuplets",
+    "releaseDate": "2020-02-28"
+  },
+  {
+    "setAbbrVarieties": [
+      "GP"
+    ],
+    "setName": "ガールズ＆パンツァー",
+    "setNameEn": "Girls & Panzer",
+    "releaseDate": "2013-11-08"
+  },
+  {
+    "setAbbrVarieties": [
+      "GPF"
+    ],
+    "setName": "ガールズ＆パンツァー　劇場版",
+    "setNameEn": "Girls & Panzer Movie",
+    "releaseDate": "2016-08-26"
+  },
+  {
+    "setAbbrVarieties": [
+      "GPFN"
+    ],
+    "setName": "ガールズ＆パンツァー 最終章",
+    "setNameEn": "Girls & Panzer Final Chapter",
+    "releaseDate": "2019-09-13"
+  },
+  {
+    "setAbbrVarieties": [
+      "GRAN"
+    ],
+    "setName": "グランベルム",
+    "setNameEn": "Granbelm",
+    "releaseDate": "2020-01-24"
+  },
+  {
+    "setAbbrVarieties": [
+      "HCNI"
+    ],
+    "setName": "八月のシンデレラナイン",
+    "setNameEn": "Hachigatsu no Cinderella Nine",
+    "releaseDate": "2019-10-25"
+  },
+  {
+    "setAbbrVarieties": [
+      "HKM"
+    ],
+    "setName": "ハロー！！きんいろモザイク",
+    "setNameEn": "Hello!! Kiniro Mosaic",
+    "releaseDate": "2015-10-09"
+  },
+  {
+    "setAbbrVarieties": [
+      "HMK"
+    ],
+    "setName": "初音ミク",
+    "setNameEn": "Hatsune Miku",
+    "releaseDate": "2013-03-09"
+  },
+  {
+    "setAbbrVarieties": [
+      "HMK"
+    ],
+    "setName": "初音ミクPart.2",
+    "setNameEn": "Hatsune Miku Part.2",
+    "releaseDate": "2013-08-31"
+  },
+  {
+    "setAbbrVarieties": [
+      "HMK"
+    ],
+    "setName": "初音ミクPart.3",
+    "setNameEn": "Hatsune Miku Part.3",
+    "releaseDate": "2015-03-09"
+  },
+  {
+    "setAbbrVarieties": [
+      "HND"
+    ],
+    "setName": "ハンドシェイカー",
+    "setNameEn": "Handshakers",
+    "releaseDate": "2017-04-27"
+  },
+  {
+    "setAbbrVarieties": [
+      "HNYM"
+    ],
+    "setName": "ハナヤマタ",
+    "setNameEn": "Hanayamata",
+    "releaseDate": "2015-02-20"
+  },
+  {
+    "setAbbrVarieties": [
+      "HS", "PM_HS"
+    ],
+    "setName": "ひだまりスケッチ",
+    "setNameEn": "Hidamari Sketch",
+    "releaseDate": "2012"
+  },
+  {
+    "setAbbrVarieties": [
+      "HS4"
+    ],
+    "setName": "ひだまりスケッチ×ハニカム",
+    "setNameEn": "Hidamari Sketch X Honeycomb",
+    "releaseDate": "2013-12-06"
+  },
+  {
+    "setAbbrVarieties": [
+      "HSB"
+    ],
+    "setName": "百花繚乱 サムライブライド",
+    "setNameEn": "Hyakka Ryouran: Samurai Bride",
+    "releaseDate": "2014-06-15"
+  },
+  {
+    "setAbbrVarieties": [
+      "HSF"
+    ],
+    "setName": "ハイスクール・フリート",
+    "setNameEn": "Highschool Fleet",
+    "releaseDate": "2017-06-23"
+  },
+  {
+    "setAbbrVarieties": [
+      "HSFM"
+    ],
+    "setName": "劇場版 ハイスクール・フリート",
+    "setNameEn": "High School Fleet Movie",
+    "releaseDate": "2020-02-21"
+  },
+  {
+    "setAbbrVarieties": [
+      "HTRK"
+    ],
+    "setName": "はたらく細胞",
+    "setNameEn": "Cells at Work",
+    "releaseDate": "2019-03-22"
+  },
+  {
+    "setAbbrVarieties": [
+      "HYA", "hyakka"
+    ],
+    "setName": "百花繚乱 サムライガールズ",
+    "setNameEn": "Hyakka Ryouran: Samurai Girls",
+    "releaseDate": "2011"
+  },
+  {
+    "setAbbrVarieties": [
+      "IKA", "ika"
+    ],
+    "setName": "侵略！イカ娘",
+    "setNameEn": "The Squid Girl",
+    "releaseDate": "2012"
+  },
+  {
+    "setAbbrVarieties": [
+      "IKA2"
+    ],
+    "setName": "侵略!?イカ娘",
+    "setNameEn": "The Squid Girl 2",
+    "releaseDate": "2012-09-28"
+  },
+  {
+    "setAbbrVarieties": [
+      "KC"
+    ],
+    "setName": "ココロコネクト",
+    "setNameEn": "Kokoro Connect",
+    "releaseDate": "2013-03-29"
+  },
+  {
+    "setAbbrVarieties": [
+      "KG", "PM_KG"
+    ],
+    "setName": "刀語",
+    "setNameEn": "Katanagatari",
+    "releaseDate": "2011"
+  },
+  {
+    "setAbbrVarieties": [
+      "KGB"
+    ],
+    "setName": "怪獣娘（黒）",
+    "setNameEn": "Kaijuu Girls Black",
+    "releaseDate": "2020"
+  },
+  {
+    "setAbbrVarieties": [
+      "KGY"
+    ],
+    "setName": "かぐや様は告らせたい～天才たちの恋愛頭脳戦～",
+    "setNameEn": "Kaguya-sama: Love is War Season 2",
+    "releaseDate": "2019-11-29"
+  },
+  {
+    "setAbbrVarieties": [
+      "KMK"
+    ],
+    "setName": "きんいろモザイク",
+    "setNameEn": "Kiniro Mosaic (KINMOZA!)",
+    "releaseDate": "2014-02-21"
+  },
+  {
+    "setAbbrVarieties": [
+      "KM"
+    ],
+    "setName": "神様のメモ帳",
+    "setNameEn": "Heaven's Memo Pad",
+    "releaseDate": "2012-05-25"
+  },
+  {
+    "setAbbrVarieties": [
+      "KMG"
+    ],
+    "setName": "傷物語",
+    "setNameEn": "Kizumonogatari",
+    "releaseDate": "2020-10-23"
+  },
+  {
+    "setAbbrVarieties": [
+      "KMPD"
+    ],
+    "setName": "きんいろモザイク Pretty Days",
+    "setNameEn": "Hello!! Kiniro Mosaic Special",
+    "releaseDate": "2017"
+  },
+  {
+    "setAbbrVarieties": [
+      "KMR"
+    ],
+    "setName": "ケムリクサ",
+    "setNameEn": "Kemurikusa",
+    "releaseDate": "2019-06-26"
+  },
+  {
+    "setAbbrVarieties": [
+      "KON", "PM_K-ON"
+    ],
+    "setName": "けいおん！",
+    "setNameEn": "K-ON!",
+    "releaseDate": "2011"
+  },
+  {
+    "setAbbrVarieties": [
+      "KON2",
+      "K-ON_Part2",
+      "PM_K-ON_Part2"
+    ],
+    "setName": "けいおん！Part2",
+    "setNameEn": "K-ON! Part.2",
+    "releaseDate": "2012-05-28"
+  },
+  {
+    "setAbbrVarieties": [
+      "KON3", "K_ON2"
+    ],
+    "setName": "けいおん！！",
+    "setNameEn": "K-ON!!",
+    "releaseDate": "2012-05-28"
+  },
+  {
+    "setAbbrVarieties": [
+      "KON4"
+    ],
+    "setName": "けいおん！！Part.2",
+    "setNameEn": "K-ON!! Part.2",
+    "releaseDate": "2012-05-28"
+  },
+  {
+    "setAbbrVarieties": [
+      "KONM"
+    ],
+    "setName": "映画「けいおん！」",
+    "setNameEn": "K-ON! Movie",
+    "releaseDate": "2016-08-01"
+  },
+  {
+    "setAbbrVarieties": [
+      "KSC"
+    ],
+    "setName": "恋と選挙とチョコレート",
+    "setNameEn": "Love, Election and Chocolate",
+    "releaseDate": "2013-05-31"
+  },
+  {
+    "setAbbrVarieties": [
+      "LL",
+      "LAB"
+    ],
+    "setName": "恋愛ラボ",
+    "setNameEn": "Love Lab",
+    "releaseDate": "2014-04-04"
+  },
+  {
+    "setAbbrVarieties": [
+      "MC"
+    ],
+    "setName": "まよチキ！",
+    "setNameEn": "Mayo Chiki!",
+    "releaseDate": "2012-02-29"
+  },
+  {
+    "setAbbrVarieties": [
+      "MDK"
+    ],
+    "setName": "魔法少女まどか☆マギカ",
+    "setNameEn": "Mahou Shoujo Madoka★Magica",
+    "releaseDate": "2011-08-26"
+  },
+  {
+    "setAbbrVarieties": [
+      "MMDK"
+    ],
+    "setName": "劇場版 魔法少女まどか☆マギカ",
+    "setNameEn": "Puella Magi Madoka Magica the Movie",
+    "releaseDate": "2013-06-28"
+  },
+  {
+    "setAbbrVarieties": [
+      "MMH"
+    ],
+    "setName": "劇場版 魔法少女まどか☆マギカ[新編]叛逆の物語",
+    "setNameEn": "Puella Magi Madoka Magica the Movie: Rebellion",
+    "releaseDate": "2014-10-17"
+  },
+  {
+    "setAbbrVarieties": [
+      "MS"
+    ],
+    "setName": "ましろ色シンフォニー",
+    "setNameEn": "Mashiro-iro Symphony",
+    "releaseDate": "2011-02-29"
+  },
+  {
+    "setAbbrVarieties": [
+      "MGS"
+    ],
+    "setName": "<物語>シリーズ",
+    "setNameEn": "Monogatari Series",
+    "releaseDate": "2015-07-31"
+  },
+  {
+    "setAbbrVarieties": [
+      "MG2"
+    ],
+    "setName": "<物語>シリーズ セカンドシーズン",
+    "setNameEn": "Monogatari Series Second Season",
+    "releaseDate": "2014-09-19"
+  },
+  {
+    "setAbbrVarieties": [
+      "MHK"
+    ],
+    "setName": "劇場版 魔法科高校の劣等生 星を呼ぶ少女",
+    "setNameEn": "The Irregular at Magic High School",
+    "releaseDate": "2017-11-17"
+  },
+  {
+    "setAbbrVarieties": [
+      "MMK"
+    ],
+    "setName": "みなみけ",
+    "setNameEn": "Minami-ke",
+    "releaseDate": "2013-11-29"
+  },
+  {
+    "setAbbrVarieties": [
+      "MZK"
+    ],
+    "setName": "まちカドまぞく",
+    "setNameEn": "The Demon Girl Next Door",
+    "releaseDate": "2020-03-27"
+  },
+  {
+    "setAbbrVarieties": [
+      "NEKO"
+    ],
+    "setName": "ネコぱら",
+    "setNameEn": "Neko Para",
+    "releaseDate": "2020-08-28"
+  },
+  {
+    "setAbbrVarieties": [
+      "NG"
+    ],
+    "setName": "NEW GAME!",
+    "setNameEn": "New Game!",
+    "releaseDate": "2017"
+  },
+  {
+    "setAbbrVarieties": [
+      "NG2"
+    ],
+    "setName": "NEW GAME!!",
+    "setNameEn": "New Game!!",
+    "releaseDate": "2018-07-27"
+  },
+  {
+    "setAbbrVarieties": [
+      "NGNL"
+    ],
+    "setName": "ノーゲーム・ノーライフ ゼロ",
+    "setNameEn": "No Game No Life: Zero",
+    "releaseDate": "2018-02-23"
+  },
+  {
+    "setAbbrVarieties": [
+      "NK"
+    ],
+    "setName": "夏色キセキ",
+    "setNameEn": "Natsu-iro Kiseki",
+    "releaseDate": "2012-10-26"
+  },
+  {
+    "setAbbrVarieties": [
+      "NMG"
+    ],
+    "setName": "偽物語",
+    "setNameEn": "Nisemonogatari",
+    "releaseDate": "2013-11-23"
+  },
+  {
+    "setAbbrVarieties": [
+      "OCFR"
+    ],
+    "setName": "おちこぼれフルーツタルト",
+    "setNameEn": "Dropout Idol Fruit Tart",
+    "releaseDate": "2021-08-27"
+  },
+  {
+    "setAbbrVarieties": [
+      "OGR"
+    ],
+    "setName": "やはり俺の青春ラブコメはまちがっている。",
+    "setNameEn": "My Teen Romantic Comedy SNAFU",
+    "releaseDate": "2015-12-04"
+  },
+  {
+    "setAbbrVarieties": [
+      "OOKAMI",
+      "ookami"
+    ],
+    "setName": "オオカミさんと七人の仲間たち",
+    "setNameEn": "Okami-San and Her Seven Companions",
+    "releaseDate": "2011"
+  },
+  {
+    "setAbbrVarieties": [
+      "OOS"
+    ],
+    "setName": "俺の彼女と幼なじみが修羅場すぎる",
+    "setNameEn": "Oreshura",
+    "releaseDate": "2013-10-25"
+  },
+  {
+    "setAbbrVarieties": [
+      "ORSK"
+    ],
+    "setName": "俺を好きなのはお前だけかよ",
+    "setNameEn": "ORESUKI Are you the only one who loves me?",
+    "releaseDate": "2020-06-26"
+  },
+  {
+    "setAbbrVarieties": [
+      "OREIMO",
+      "oreimo"
+    ],
+    "setName": "俺の妹がこんなに可愛いわけがない",
+    "setNameEn": "My Little Sister Can’t Be This Cute",
+    "releaseDate": "2011-08-22"
+  },
+  {
+    "setAbbrVarieties": [
+      "ORE2"
+    ],
+    "setName": "俺の妹がこんなに可愛いわけがない。",
+    "setNameEn": "My Little Sister Can’t Be This Cute 2",
+    "releaseDate": "2012-12-07"
+  },
+  {
+    "setAbbrVarieties": [
+      "ORG2"
+    ],
+    "setName": "やはり俺の青春ラブコメはまちがっている。続",
+    "setNameEn": "My Teen Romantic Comedy SNAFU TOO!",
+    "releaseDate": "2015-12-04"
+  },
+  {
+    "setAbbrVarieties": [
+      "PPTP"
+    ],
+    "setName": "ポプテピピック",
+    "setNameEn": "POP TEAM EPIC",
+    "releaseDate": "2019-02-22"
+  },
+  {
+    "setAbbrVarieties": [
+      "SG"
+    ],
+    "setName": "STEINS;GATE",
+    "setNameEn": "STEINS;GATE",
+    "releaseDate": "2019-01-25"
+  },
+  {
+    "setAbbrVarieties": [
+      "SPK"
+    ],
+    "setName": "さくら荘のペットな彼女",
+    "setNameEn": "The Pet Girl of Sakurasou",
+    "releaseDate": "2013-09-29"
+  },
+  {
+    "setAbbrVarieties": [
+      "SPY"
+    ],
+    "setName": "RELEASE THE SPYCE",
+    "setNameEn": "RELEASE THE SPYCE",
+    "releaseDate": "2019-05-24"
+  },
+  {
+    "setAbbrVarieties": [
+      "SRBK"
+    ],
+    "setName": "SHIROBAKO",
+    "setNameEn": "Shirobako",
+    "releaseDate": "2015"
+  },
+  {
+    "setAbbrVarieties": [
+      "SRBKM"
+    ],
+    "setName": "劇場版「SHIROBAKO」",
+    "setNameEn": "Shirobako Movie",
+    "releaseDate": "2020-04-24"
+  },
+  {
+    "setAbbrVarieties": [
+      "SSSS"
+    ],
+    "setName": "SSSS.GRIDMAN",
+    "setNameEn": "SSSS.GRIDMAN",
+    "releaseDate": "2019-04-26"
+  },
+  {
+    "setAbbrVarieties": [
+      "SZ2"
+    ],
+    "setName": "生徒会の一存 Lv.2",
+    "setNameEn": "Student Council's Discretion Level 2",
+    "releaseDate": "2013-02-22"
+  },
+  {
+    "setAbbrVarieties": [
+      "SAG"
+    ],
+    "setName": "ささみさん＠がんばらない",
+    "setNameEn": "Sasami-san@Ganbarai",
+    "releaseDate": "2013-12-27"
+  },
+  {
+    "setAbbrVarieties": [
+      "SAGA"
+    ],
+    "setName": "ゾンビランドサガ",
+    "setNameEn": "Zombieland Saga",
+    "releaseDate": "2019-06-28"
+  },
+  {
+    "setAbbrVarieties": [
+      "SAK"
+    ],
+    "setName": "咲-Saki- 全国編",
+    "setNameEn": "Saki: The Nationals",
+    "releaseDate": "2014-12-05"
+  },
+  {
+    "setAbbrVarieties": [
+      "SEKN"
+    ],
+    "setName": "冴えない彼女の育てかた",
+    "setNameEn": "How to Raise a Boring Girlfriend",
+    "releaseDate": "2015"
+  },
+  {
+    "setAbbrVarieties": [
+      "TKR"
+    ],
+    "setName": "とある科学の超電磁砲＆とある科学の超電磁砲Ｓ",
+    "setNameEn": "A Certain Scientific Railgun & A Certain Scientific Railgun S",
+    "releaseDate": "2016-11-11"
+  },
+  {
+    "setAbbrVarieties": [
+      "TKRT"
+    ],
+    "setName": "とある科学の超電磁砲T",
+    "setNameEn": "A Certain Scientific Railgun T",
+    "releaseDate": "2020-09-25"
+  },
+  {
+    "setAbbrVarieties": [
+      "TRDR"
+    ],
+    "setName": "とらドラ！",
+    "setNameEn": "Toradora!",
+    "releaseDate": "2012-07-27"
+  },
+  {
+    "setAbbrVarieties": [
+      "WHN"
+    ],
+    "setName": "魔法使いの夜",
+    "setNameEn": "Witch of the Holy Night",
+    "releaseDate": "2013-09-09"
+  },
+  {
+    "setAbbrVarieties": [
+      "WKG"
+    ],
+    "setName": "WORKING！！",
+    "setNameEn": "WORKING!!",
+    "releaseDate": "2012-05-29"
+  },
+  {
+    "setAbbrVarieties": [
+      "WKG2"
+    ],
+    "setName": "WORKING´!!",
+    "setNameEn": "WORKING´!!",
+    "releaseDate": "2012-06-29"
+  },
+  {
+    "setAbbrVarieties": [
+      "WKG3"
+    ],
+    "setName": "WORKING!!!",
+    "setNameEn": "WORKING!!!",
+    "releaseDate": "2016-04-15"
+  },
+  {
+    "setAbbrVarieties": [
+      "YRC"
+    ],
+    "setName": "ゆるキャン△",
+    "setNameEn": "Yuru Camp△",
+    "releaseDate": "2018-09-28"
+  },
+  {
+    "setAbbrVarieties": [
+      "YRYR10"
+    ],
+    "setName": "ゆるゆり、",
+    "setNameEn": "Yuru Yuri,",
+    "releaseDate": "2020-06-12"
+  },
+  {
+    "setAbbrVarieties": [
+      "YRYRN"
+    ],
+    "setName": "ゆるゆり　なちゅやちゅみ！",
+    "setNameEn": "Yuru Yuri Nachuyachumi!",
+    "releaseDate": "2015-05-05"
+  },
+  {
+    "setAbbrVarieties": [
+      "YRYR2"
+    ],
+    "setName": "ゆるゆり♪♪",
+    "setNameEn": "YuruYuri: Happy Go Lily ♪♪",
+    "releaseDate": "2013-09-13"
+  },
+  {
+    "setAbbrVarieties": [
+      "YRYR"
+    ],
+    "setName": "ゆるゆり",
+    "setNameEn": "YuruYuri: Happy Go Lily",
+    "releaseDate": "2012-03-30"
+  },
+  {
+    "setAbbrVarieties": [
+      "YYY"
+    ],
+    "setName": "結城友奈は勇者である",
+    "setNameEn": "Yuki Yuna is a Hero",
+    "releaseDate": "2018"
+  },
+  {
+    "setAbbrVarieties": [
+      "YYY2"
+    ],
+    "setName": "結城友奈は勇者である -鷲尾須美の章-/-勇者の章-",
+    "setNameEn": "Yuki Yuna is a Hero: The Washio Sumi Chapter",
+    "releaseDate": "2018-06-29"
+  },
+  {
+    "setAbbrVarieties": [
+      "AHB2"
+    ],
+    "setName": "劇場版 あの日見た花の名前を僕達はまだ知らない。",
+    "setNameEn": "anohana: The Flower We Saw That Day The Movie",
+    "releaseDate": "2021-08-27"
+  },
+  {
+    "setAbbrVarieties": [
+      "MHK2"
+    ],
+    "setName": "魔法科高校の劣等生 来訪者編",
+    "setNameEn": "The Irregular at Magic High School",
+    "releaseDate": "2021-04-30"
+  },
+  {
+    "setAbbrVarieties": [
+      "OREG3"
+    ],
+    "setName": "やはり俺の青春ラブコメはまちがっている。完",
+    "setNameEn": "My Teen Romantic Comedy SNAFU Climax!",
+    "releaseDate": "2021-03-26"
+  }
+]
